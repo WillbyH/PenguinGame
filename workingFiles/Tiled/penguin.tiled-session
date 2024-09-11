@@ -1,0 +1,57 @@
+{
+    "Map/SizeTest": {
+        "height": 4300,
+        "width": 2
+    },
+    "activeFile": "D:/Programs/XAMPP/htdocs/MeanwhileInTheAntarctic/cliffsMap.json",
+    "expandedProjectPaths": [
+    ],
+    "fileStates": {
+        "D:/Programs/XAMPP/htdocs/MeanwhileInTheAntarctic/cliffs.json": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "D:/Programs/XAMPP/htdocs/MeanwhileInTheAntarctic/cliffsMap.json": {
+            "scale": 0.33,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 240.90909090909076,
+                "y": -166.66666666666674
+            }
+        },
+        "D:/Programs/XAMPP/htdocs/MeanwhileInTheAntarctic/cliffsSet.json": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "D:/Programs/XAMPP/htdocs/MeanwhileInTheAntarctic/untitled.tmj": {
+            "scale": 23,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 6.673913043478262,
+                "y": 42.21739130434783
+            }
+        }
+    },
+    "last.imagePath": "D:/Programs/XAMPP/htdocs/MeanwhileInTheAntarctic/images",
+    "map.fixedSize": false,
+    "map.lastUsedFormat": "json",
+    "map.tileHeight": 16,
+    "map.tileWidth": 16,
+    "mapScene.enableWorlds": true,
+    "openFiles": [
+        "D:/Programs/XAMPP/htdocs/MeanwhileInTheAntarctic/cliffsMap.json",
+        "D:/Programs/XAMPP/htdocs/MeanwhileInTheAntarctic/cliffsSet.json"
+    ],
+    "project": "penguin.tiled-project",
+    "recentFiles": [
+        "D:/Programs/XAMPP/htdocs/MeanwhileInTheAntarctic/cliffsSet.json",
+        "D:/Programs/XAMPP/htdocs/MeanwhileInTheAntarctic/cliffsMap.json",
+        "D:/Programs/XAMPP/htdocs/MeanwhileInTheAntarctic/untitled.tmj",
+        "D:/Programs/XAMPP/htdocs/MeanwhileInTheAntarctic/cliffs.json"
+    ],
+    "tileset.lastUsedFormat": "json",
+    "tileset.tileSize": {
+        "height": 16,
+        "width": 16
+    }
+}

@@ -1,0 +1,20 @@
+{ "columns":9,
+ "image":"images\/cliffs.png",
+ "imageheight":96,
+ "imagewidth":144,
+ "margin":0,
+ "name":"cliffs",
+ "properties":[
+        {
+         "name":"cgimage",
+         "type":"string",
+         "value":"cliffsSetImage"
+        }],
+ "spacing":0,
+ "tilecount":54,
+ "tiledversion":"1.10.2",
+ "tileheight":16,
+ "tilewidth":16,
+ "type":"tileset",
+ "version":"1.10"
+}
