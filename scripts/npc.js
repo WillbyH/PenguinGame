@@ -29,7 +29,7 @@ function createNPC(x,y) {
         object.lastTargetDepartTime = cg.clock;
       }
     } else {
-      if (object.lastTargetDepartTime + 10000 < cg.clock) {
+      if (object.lastTargetDepartTime + 6000 < cg.clock) { // Time out movement
         object.atTarget = true;
         object.lastTargetArriveTime = cg.clock;
       }

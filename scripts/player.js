@@ -72,6 +72,7 @@ function createPenguinGraphicsPackage() {
   
     "fishing" : ["fishing"],
     "idleSouthBlink" : ["blink"],
+    "dharntz" : ["southLeft","southRight","southLeft","southRight","southLeft","southRight","southLeft","southRight","southIdle","southEastLeft","southIdle","southWestIdle","westIdle","northWestIdle","northIdle","northLeft","northRight","northLeft","northRight","northLeft","northRight","northLeft","northRight","northLeft","northRight","northEastIdle","eastIdle","southEastIdle","southIdle","southWestRight","southIdle","southEastIdle","eastIdle","northEastIdle","northIdle","northWestIdle","westIdle","southWestIdle","southIdle","southEastLeft","southIdle","southWestRight","southIdle","southEastLeft","southIdle","southWestRight","southLeft","southRight","southLeft","southRight","southLeft","southRight","southLeft","southRight"],
   };
   for (let key in penAnim) {
     let rawFrames = penAnim[key];
@@ -83,7 +84,13 @@ function createPenguinGraphicsPackage() {
       frames:frames,
       GraphicKey:["Graphic","graphic"],
       id:"penguin"+penguinGraphicsPackageCount+"_"+key,
-      frameRate:10
+      frameRate:10,
+      endCallback:function(object,Animator) {
+        if (this.id.endsWith("_dharntz")) {
+          Animator.anim = object.penAnim.idleSouth;
+          Animator.reset();
+        }
+      }
     });
   }
 
@@ -435,6 +442,7 @@ function setWalkingAnimations(aimVector,penguin) {
     penguin.Animator.anim = newAnimation;
     penguin.Animator.reset();
   }
+  penguin.nextDharntzTime = cg.clock + 10000 + Math.random()*20000;
 }
 
 function setIdleAnimations(penguin,isPlayer=false) {
@@ -468,6 +476,13 @@ function setIdleAnimations(penguin,isPlayer=false) {
     if (penguin.fishingLine.isFishing) {
       newAnimation = penguin.penAnim.fishing;
     }
+  }
+  if (penguin.nextDharntzTime==undefined) {
+    penguin.nextDharntzTime = cg.clock + 10000 + Math.random()*20000;
+  } else if (penguin.nextDharntzTime<cg.clock) {
+    newAnimation = penguin.penAnim.dharntz;
+    penguin.Animator.reset();
+    penguin.nextDharntzTime = cg.clock + 10000 + Math.random()*20000;
   }
   if (newAnimation!=null&&newAnimation.id!=penguin.Animator.anim.id) {
     penguin.Animator.anim = newAnimation;

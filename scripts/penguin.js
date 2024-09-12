@@ -81,6 +81,43 @@ function moving() { // Activated each frame there is active player input movemen
   }
 }
 
+for (let i=0;i<24;i++) {
+  let image = cg.createImage({id:"sealPopupImage_"+i,file:"sealPopup.png",crop:[16*i,0,16,16]});
+  cg.createGraphic({type:"image",id:"sealPopupFrame_"+i,image:image,width:16,height:16,imageSmoothingEnabled:false});
+}
+cg.createGraphicAnimation({
+  frames:["sealPopupFrame_0","sealPopupFrame_1","sealPopupFrame_2","sealPopupFrame_3","sealPopupFrame_4","sealPopupFrame_5","sealPopupFrame_6","sealPopupFrame_7","sealPopupFrame_8","sealPopupFrame_9","sealPopupFrame_10","sealPopupFrame_11"],
+  GraphicKey:["Graphic","graphic"],
+  id:"sealUp",
+  frameRate:15,
+  endCallback:function(object,Animator){ Animator.anim = cg.animations.sealPeep; Animator.reset(); }
+});
+cg.createGraphicAnimation({
+  frames:["sealPopupFrame_12"],
+  GraphicKey:["Graphic","graphic"],
+  id:"sealPeep",
+  frameRate:1
+});
+cg.createGraphicAnimation({
+  frames:["sealPopupFrame_23"],
+  GraphicKey:["Graphic","graphic"],
+  id:"sealWait",
+  frameRate:1
+});
+cg.createGraphicAnimation({
+  frames:["sealPopupFrame_13","sealPopupFrame_14","sealPopupFrame_15","sealPopupFrame_16","sealPopupFrame_17","sealPopupFrame_18","sealPopupFrame_19","sealPopupFrame_20","sealPopupFrame_21","sealPopupFrame_22"],
+  GraphicKey:["Graphic","graphic"],
+  id:"sealDown",
+  frameRate:15,
+  endCallback:function(object,Animator) {
+    Animator.anim = cg.animations.sealWait;
+    Animator.reset();
+    object.state = 0;
+    object.changeTime = cg.clock;
+  }
+});
+
+
 const decoratives = new class decoratives {
   createDetail0(x,y) {
     let newDetail0 = cg.createObject({"id":"detail0_"+ChoreoGraph.createId(),x:x,y:y})
@@ -160,7 +197,35 @@ const decoratives = new class decoratives {
     .attach("Graphic",{level:1,graphic:cg.createGraphic({"type":"image",image:cg.images[["stick0","stick1"][Math.floor(Math.random()*2)]],width:16,height:16,imageSmoothingEnabled:false}),master:true});
     return newStick;
   }
+  createSealPopup(sealX,sealY,triggerX,triggerY) {
+    let id = "sealPopup_"+ChoreoGraph.createId();
+    let triggerOffsetX = triggerX-sealX;
+    let triggerOffsetY = triggerY-sealY;
+    let newSeal = cg.createObject({"id":id,x:sealX,y:sealY,state:0,changeTime:0})
+    .attach("Graphic",{level:1,graphic:cg.createGraphic({"type":"image",image:cg.images.sealPopupImage_12,width:16,height:16,imageSmoothingEnabled:false}),master:true})
+    .attach("Collider",{ox:triggerOffsetX,oy:triggerOffsetY,collider:cg.createCollider({type:"circle",radius:20,trigger:true,groups:[1],
+      enter:function(collider){
+        if (collider.object.id=="Player"&&this.object.state==0) {
+          this.object.Animator.anim = cg.animations.sealUp;
+          this.object.Animator.reset();
+          this.object.state = 1;
+          this.object.changeTime = cg.clock;
+        }
+      }
+    }),master:true})
+    .attach("Animator",{anim:cg.animations.sealWait})
+    .attach("Script",{updateScript:function(object){
+      if (object.state==1&&object.changeTime+3000<cg.clock) {
+        object.Animator.anim = cg.animations.sealDown;
+        object.Animator.reset();
+        object.state = 2;
+        object.changeTime = cg.clock;
+      }
+    }});
+  }
 }
+
+decoratives.createSealPopup(92.5,-105.5,52.5,-67);
 
 // decoratives.createStone(0,50);
 // decoratives.createStone(-150,55);
