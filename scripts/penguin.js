@@ -117,6 +117,8 @@ cg.createGraphicAnimation({
   }
 });
 
+// const fancyCamera = cg.createObject({"id":"fancyCamera",x:0,y:0})
+// .attach("Camera",{x:0,y:0,rotation:0,scale:1.5,smooth:0.1});
 
 const decoratives = new class decoratives {
   createDetail0(x,y) {
@@ -205,7 +207,7 @@ const decoratives = new class decoratives {
     .attach("Graphic",{level:1,graphic:cg.createGraphic({"type":"image",image:cg.images.sealPopupImage_12,width:16,height:16,imageSmoothingEnabled:false}),master:true})
     .attach("Collider",{ox:triggerOffsetX,oy:triggerOffsetY,collider:cg.createCollider({type:"circle",radius:20,trigger:true,groups:[1],
       enter:function(collider){
-        if (collider.object.id=="Player"&&this.object.state==0) {
+        if (collider.object.id=="Player"&&this.object.state==0&&this.object.changeTime+10000<cg.clock&&Math.random()>0.5) {
           this.object.Animator.anim = cg.animations.sealUp;
           this.object.Animator.reset();
           this.object.state = 1;
@@ -222,10 +224,15 @@ const decoratives = new class decoratives {
         object.changeTime = cg.clock;
       }
     }});
+    return newSeal;
   }
 }
 
 decoratives.createSealPopup(92.5,-105.5,52.5,-67);
+decoratives.createSealPopup(-687,431,-670,346);
+decoratives.createSealPopup(475,-520.5,443.5,-490);
+decoratives.createSealPopup(-572,-470,-516,-503.5);
+decoratives.createSealPopup(196.5,522.5,198,450.5);
 
 // decoratives.createStone(0,50);
 // decoratives.createStone(-150,55);
