@@ -3,9 +3,9 @@ const interface = {
 }
 
 cg.createObject({"id":"pauseObject",x:70,y:70})
-.attach("Graphic",{level:1,graphic:cg.createGraphic({"type":"rectangle",ox:0,height:80,width:80,fill:true,colour:"#fafafa",CGSpace:false}),keyOverride:"leftBox",master:true})
-.attach("Graphic",{level:1,graphic:cg.createGraphic({"type":"rectangle",ox:-20,height:60,width:20,fill:false,lineWidth:4,colour:"black",CGSpace:false}),keyOverride:"leftBox",master:true})
-.attach("Graphic",{level:1,graphic:cg.createGraphic({"type":"rectangle",ox:20,height:60,width:20,fill:false,lineWidth:4,colour:"black",CGSpace:false}),keyOverride:"rightBox",master:true})
+.attach("Graphic",{level:2,graphic:cg.createGraphic({"type":"rectangle",ox:0,height:80,width:80,fill:true,colour:"#fafafa",CGSpace:false}),keyOverride:"leftBox",master:true})
+.attach("Graphic",{level:2,graphic:cg.createGraphic({"type":"rectangle",ox:-20,height:60,width:20,fill:false,lineWidth:4,colour:"black",CGSpace:false}),keyOverride:"leftBox",master:true})
+.attach("Graphic",{level:2,graphic:cg.createGraphic({"type":"rectangle",ox:20,height:60,width:20,fill:false,lineWidth:4,colour:"black",CGSpace:false}),keyOverride:"rightBox",master:true})
 .attach("Button",{button:cg.createButton({type:"circle",id:"pauseButton",radius:60,check:"gameplay",CGSpace:false,
   enter:function(){
     cg.objects.pauseObject.leftBox.graphic.colour = "#88bbeb";

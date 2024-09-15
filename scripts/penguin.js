@@ -17,6 +17,13 @@ cg.createGraphic({type:"pointText",id:"collectText",CGSpace:false,x:-50,y:36,can
 // const OminousSquare = cg.createObject({"id":"ominousSquare",x:50,y:0})
 // .attach("Graphic",{level:1,graphic:cg.createGraphic({"type":"rectangle",colour:"#86acff",width:32,height:32}),master:true});
 
+let voidCovers = {
+  "top" : cg.createGraphic({type:"rectangle",x:0,y:-1300,width:5000,height:1000,colour:"#3c536d",level:1}),
+  "bottom" : cg.createGraphic({type:"rectangle",x:0,y:1300,width:5000,height:1000,colour:"#3c536d",level:1}),
+  "left" : cg.createGraphic({type:"rectangle",x:-1700,y:0,width:1500,height:2000,colour:"#3c536d",level:1}),
+  "right" : cg.createGraphic({type:"rectangle",x:1700,y:0,width:1500,height:2000,colour:"#3c536d",level:1}),
+}
+
 cg.settings.callbacks.loopBefore = function(cg) {
   Player.movement();
   if (showCollectText) {
@@ -24,6 +31,12 @@ cg.settings.callbacks.loopBefore = function(cg) {
   }
   if (cliffsMap!=undefined) {
     cg.addToLevel(0,cliffsMap);
+  }
+  if (fancyCamera.Camera.active) {
+    cg.addToLevel(1,voidCovers.top);
+    cg.addToLevel(1,voidCovers.bottom);
+    cg.addToLevel(1,voidCovers.left);
+    cg.addToLevel(1,voidCovers.right);
   }
 }
 cg.settings.callbacks.loopAfter = function(cg) {
@@ -46,6 +59,15 @@ cg.settings.callbacks.keyDown = function(key) {
     } else {
       interface.pause = true;
       cg.pause();
+    }
+  } else if (key=="m") {
+    Player.Camera.active = !Player.Camera.active;
+    fancyCamera.Camera.active = !fancyCamera.Camera.active;
+    fancyCamera.transitionStartTime = cg.clock;
+    if (Player.Camera.active) { cg.camera.maximumSize = fancyCamera.zoomedInMaximumSize; }
+    else {
+      fancyCamera.Transform.x = Player.Transform.x;
+      fancyCamera.Transform.y = Player.Transform.y;
     }
   }
   if (cg.graphics.thoughtBubble.selected!=null&&cg.graphics.thoughtBubble.selected.hotkey==key) {
@@ -117,8 +139,26 @@ cg.createGraphicAnimation({
   }
 });
 
-// const fancyCamera = cg.createObject({"id":"fancyCamera",x:0,y:0})
-// .attach("Camera",{x:0,y:0,rotation:0,scale:1.5,smooth:0.1});
+const fancyCamera = cg.createObject({"id":"fancyCamera",x:-20,y:-30})
+.attach("Camera",{x:0,y:0,rotation:0,scale:1.5,smooth:0.1,active:false})
+.attach("Script",{updateScript:function(object){
+  if (object.Camera.active) {
+    if (object.transitionStartTime+object.transitionDuration>cg.clock) { // Transition from zoomed in to zoomed out
+      let progress = (cg.clock-object.transitionStartTime)/object.transitionDuration;
+      progress = (progress**2)*(3-2*progress);
+      cg.camera.maximumSize = object.zoomedInMaximumSize + (object.zoomedOutMaximumSize-object.zoomedInMaximumSize)*progress;
+      object.Transform.x = Player.Transform.x + (object.outX-Player.Transform.x)*progress;
+      object.Transform.y = Player.Transform.y + (object.outY-Player.Transform.y)*progress;
+    }
+  }
+}});
+
+fancyCamera.zoomedInMaximumSize = 330;
+fancyCamera.zoomedOutMaximumSize = 2800;
+fancyCamera.transitionDuration = 1000;
+fancyCamera.transitionStartTime = 0;
+fancyCamera.outX = -20;
+fancyCamera.outY = -30;
 
 const decoratives = new class decoratives {
   createDetail0(x,y) {
@@ -272,9 +312,9 @@ if (ChoreoGraph.Develop!=undefined) {
 
 let tileMapLoaded = false;
 let cliffsMap;
-cg.importTileSet("data/cliffsSet.json",function(){
+cg.importTileSetFromFile("data/cliffsSet.json",function(){
   cliffsMap = cg.createGraphic({type:"tileMap",y:16*20});
-  cg.importTileMap("data/cliffsMap.json",function(TileMap) {
+  cg.importTileMapFromFile("data/cliffsMap.json",function(TileMap) {
     TileMap.cache = true;
     cliffsMap.tileMap = TileMap;
     cliffsMap.layersToDraw = [0,1];
@@ -298,7 +338,7 @@ cg.settings.callbacks.loadingLoop = function(cg,loadedImages) {
 }
 
 cg.camera.scaleMode = "maximum";
-cg.camera.maximumSize = 330;
+cg.camera.maximumSize = fancyCamera.zoomedInMaximumSize;
 
 ChoreoGraph.start();
 // Willby - 2024
