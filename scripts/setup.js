@@ -8,7 +8,7 @@ var cg = ChoreoGraph.instantiate(document.getElementsByTagName("canvas")[0],{
     autoFacingDefault : true,
     persistentValuesDefault : true
   },
-  preventDefault : ["space"]
+  preventDefault : ["space","up","down","left","right"],
 });
 
 let ssg = 16; // Spritesheet Grid Size

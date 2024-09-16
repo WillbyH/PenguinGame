@@ -67,6 +67,7 @@ function createNPC(x,y) {
 
 createNPC(-30,16*8);
 createNPC(70,16*20);
+
 // createNPC(30,16*5);
 // createNPC(-40,16*5.5);
 // createNPC(50,16*6);
@@ -74,6 +75,11 @@ createNPC(70,16*20);
 // createNPC(70,16*7);
 // createNPC(-80,16*7.5);
 // createNPC(90,16*8);
+
+createNPC(2450,-27);
+createNPC(2486,5);
+createNPC(2547,-22);
+createNPC(2504,-45);
 
 for (let i=0;i<20;i++) { createNPC(400,-360); }
 for (let i=0;i<20;i++) { createNPC(-260,-490); }

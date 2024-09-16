@@ -12,42 +12,57 @@ cg.createImage({id:"snowIcon",file:"icons.png",crop:[2*ssg,0*ssg,1*ssg,1*ssg]});
 cg.createImage({id:"fishingIcon",file:"icons.png",crop:[3*ssg,0*ssg,1*ssg,1*ssg]});
 cg.createImage({id:"fishIcon",file:"icons.png",crop:[4*ssg,0*ssg,1*ssg,1*ssg]});
 cg.createImage({id:"snowmanIcon",file:"icons.png",crop:[0*ssg,1*ssg,1*ssg,1*ssg]});
+cg.createImage({id:"penguinIcon",file:"icons.png",crop:[1*ssg,1*ssg,1*ssg,1*ssg]});
+cg.createImage({id:"sealIcon",file:"icons.png",crop:[2*ssg,1*ssg,1*ssg,1*ssg]});
+
 cg.createImage({id:"cliffsSetImage",file:"cliffs.png"});
 
 cg.createImage({id:"detail0",file:"world.png",crop:[0*ssg,2*ssg,3*ssg,2*ssg]});
 
-cg.createGraphic({type:"pointText",id:"collectText",CGSpace:false,x:-50,y:36,canvasSpaceXAnchor:1,canvasSpaceYAnchor:0,colour:"#000000",text:"Collect!",textAlign:"center",font:"15px Arial"});
-
-// const OminousSquare = cg.createObject({"id":"ominousSquare",x:50,y:0})
-// .attach("Graphic",{level:1,graphic:cg.createGraphic({"type":"rectangle",colour:"#86acff",width:32,height:32}),master:true});
+let onTitleScreen = false;
+if (onTitleScreen) {
+  cg.objects.interface.titleScreen.graphic.o = 1;
+}
 
 let voidCovers = {
-  "top" : cg.createGraphic({type:"rectangle",x:0,y:-1300,width:5000,height:1000,colour:"#3c536d",level:1}),
-  "bottom" : cg.createGraphic({type:"rectangle",x:0,y:1300,width:5000,height:1000,colour:"#3c536d",level:1}),
-  "left" : cg.createGraphic({type:"rectangle",x:-1700,y:0,width:1500,height:2000,colour:"#3c536d",level:1}),
-  "right" : cg.createGraphic({type:"rectangle",x:1700,y:0,width:1500,height:2000,colour:"#3c536d",level:1}),
+  "worldTop" : cg.createGraphic({type:"rectangle",x:0,y:-1300,width:5000,height:1000,colour:"#3c536d",level:1}),
+  "worldBottom" : cg.createGraphic({type:"rectangle",x:0,y:1300,width:5000,height:1000,colour:"#3c536d",level:1}),
+  "worldLeft" : cg.createGraphic({type:"rectangle",x:-1700,y:0,width:1500,height:2000,colour:"#3c536d",level:1}),
+  "worldRight" : cg.createGraphic({type:"rectangle",x:1700,y:0,width:1500,height:2000,colour:"#3c536d",level:1}),
+  "titleTop" : cg.createGraphic({type:"rectangle",x:2500,y:-650,width:3000,height:1000,colour:"#3c536d",level:0}),
+  "titleBottom" : cg.createGraphic({type:"rectangle",x:2500,y:650,width:3000,height:1000,colour:"#3c536d",level:0}),
+  "titleLeft" : cg.createGraphic({type:"rectangle",x:1700,y:0,width:1350,height:2000,colour:"#3c536d",level:0}),
+  "titleRight" : cg.createGraphic({type:"rectangle",x:3400,y:0,width:1500,height:2000,colour:"#3c536d",level:0})
 }
 
 cg.settings.callbacks.loopBefore = function(cg) {
   Player.movement();
-  if (showCollectText) {
-    cg.addToLevel(4,cg.graphics.collectText);
-  }
   if (cliffsMap!=undefined) {
     cg.addToLevel(0,cliffsMap);
+    cg.addToLevel(1,titleMap);
   }
-  if (fancyCamera.Camera.active) {
-    cg.addToLevel(1,voidCovers.top);
-    cg.addToLevel(1,voidCovers.bottom);
-    cg.addToLevel(1,voidCovers.left);
-    cg.addToLevel(1,voidCovers.right);
+  if (onTitleScreen) {
+    cg.addToLevel(1,voidCovers.titleTop);
+    cg.addToLevel(1,voidCovers.titleBottom);
+    cg.addToLevel(1,voidCovers.titleLeft);
+    cg.addToLevel(1,voidCovers.titleRight);
+  } else {
+    cg.addToLevel(1,voidCovers.worldTop);
+    cg.addToLevel(1,voidCovers.worldBottom);
+    cg.addToLevel(1,voidCovers.worldLeft);
+    cg.addToLevel(1,voidCovers.worldRight);
   }
 }
 cg.settings.callbacks.loopAfter = function(cg) {
   cg.settings.canvasSpaceScale = cg.cw/1920;
+  if (cg.cw>2500) {
+    cg.settings.canvasSpaceScale *= 0.4;
+  } else if (cg.cw>1920) {
+    cg.settings.canvasSpaceScale *= 0.8;
+  }
   cg.objects.interface.pauseMenu.graphic.o = interface.pause;
 
-  if (tileMapLoaded==false) {
+  if (tileMapsLoaded<2) {
     cg.settings.callbacks.loadingLoop(cg,Object.keys(cg.images).length);
   }
 }
@@ -62,14 +77,7 @@ cg.settings.callbacks.keyDown = function(key) {
       cg.pause();
     }
   } else if (key=="m") {
-    Player.Camera.active = !Player.Camera.active;
-    fancyCamera.Camera.active = !fancyCamera.Camera.active;
-    fancyCamera.transitionStartTime = cg.clock;
-    if (Player.Camera.active) { cg.camera.maximumSize = fancyCamera.zoomedInMaximumSize; }
-    else {
-      fancyCamera.Transform.x = Player.Transform.x;
-      fancyCamera.Transform.y = Player.Transform.y;
-    }
+    fancyCamera.targetTargetOut = !fancyCamera.targetTargetOut;
   }
   if (cg.graphics.thoughtBubble.selected!=null&&cg.graphics.thoughtBubble.selected.hotkey==key) {
     cg.graphics.thoughtBubble.selected.interactionCallback();
@@ -140,10 +148,16 @@ cg.createGraphicAnimation({
   }
 });
 
-const fancyCamera = cg.createObject({"id":"fancyCamera",x:-20,y:-30})
+const fancyCamera = cg.createObject({"id":"fancyCamera",x:-10,y:-30})
 .attach("Camera",{x:0,y:0,rotation:0,scale:1.5,smooth:0.1,active:false})
 .attach("Script",{updateScript:function(object){
-  if (object.Camera.active) {
+  if (object.targetTargetOut!=object.targetOut&&object.transitionStartTime+object.transitionDuration<cg.clock) {
+    object.transitionStartTime = cg.clock;
+    object.targetOut = object.targetTargetOut;
+  }
+  if (object.targetOut) {
+    Player.Camera.active = false;
+    fancyCamera.Camera.active = true;
     if (object.transitionStartTime+object.transitionDuration>cg.clock) { // Transition from zoomed in to zoomed out
       let progress = (cg.clock-object.transitionStartTime)/object.transitionDuration;
       progress = (progress**2)*(3-2*progress);
@@ -151,15 +165,50 @@ const fancyCamera = cg.createObject({"id":"fancyCamera",x:-20,y:-30})
       object.Transform.x = Player.Transform.x + (object.outX-Player.Transform.x)*progress;
       object.Transform.y = Player.Transform.y + (object.outY-Player.Transform.y)*progress;
     }
+  } else {
+    if (object.transitionStartTime+object.transitionDuration>cg.clock) { // Transition from zoomed out to zoomed in
+      let progress = (cg.clock-object.transitionStartTime)/object.transitionDuration;
+      progress = (progress**2)*(3-2*progress);
+      cg.camera.maximumSize = object.zoomedOutMaximumSize + (object.zoomedInMaximumSize-object.zoomedOutMaximumSize)*progress;
+      object.Transform.x = object.outX + (Player.Transform.x-object.outX)*progress;
+      object.Transform.y = object.outY + (Player.Transform.y-object.outY)*progress;
+    } else {
+      cg.camera.maximumSize = object.zoomedInMaximumSize;
+      Player.Camera.active = true;
+      fancyCamera.Camera.active = false;
+    }
+  }
+  if (onTitleScreen) {
+    Player.Camera.active = false;
+    fancyCamera.Camera.active = false;
+    titleCamera.Camera.active = true;
+    cg.camera.maximumSize = 600;
+    cg.objects.pauseObject.leftBox.graphic.o = 0;
+    cg.objects.pauseObject.rightBox.graphic.o = 0;
+    cg.objects.pauseObject.background.graphic.o = 0;
+  } else {
+    titleCamera.Camera.active = false;
+    cg.objects.pauseObject.leftBox.graphic.o = 1;
+    cg.objects.pauseObject.rightBox.graphic.o = 1;
+    cg.objects.pauseObject.background.graphic.o = 1;
   }
 }});
 
 fancyCamera.zoomedInMaximumSize = 330;
 fancyCamera.zoomedOutMaximumSize = 2800;
 fancyCamera.transitionDuration = 1000;
-fancyCamera.transitionStartTime = 0;
-fancyCamera.outX = -20;
+fancyCamera.transitionStartTime = -fancyCamera.transitionDuration;
+fancyCamera.targetOut = false;
+fancyCamera.targetTargetOut = false;
+fancyCamera.outX = -10;
 fancyCamera.outY = -30;
+
+const titleCamera = cg.createObject({"id":"titleCamera",x:2336,y:-18})
+.attach("Camera",{x:2336,y:-18,rotation:0,scale:1,smooth:0.1,active:false});
+
+let LCGx = 74;
+let LCGa = 75;
+let LCGm = 65537;
 
 const decoratives = new class {
   createDetail0(x,y) {
@@ -203,6 +252,7 @@ const decoratives = new class {
         if (collider.object.id=="Player") {
           cg.graphics.thoughtBubble.registerSelection(this.id,cg.images.snowIcon,function(){
             cg.graphics.inventory.add("snow",1);
+            cg.graphics.achievements.progress("hoarder",1);
             this.meta.object.amountLeft--;
             if (this.meta.object.amountLeft<=0) {
               this.meta.object.delete = true;
@@ -218,7 +268,9 @@ const decoratives = new class {
         }
       }}),master:true,keyOverride:"TriggerCollider"})
     .attach("Graphic",{level:1,graphic:cg.createGraphic({"type":"image",image:cg.images.snowHeap,width:32,height:32,imageSmoothingEnabled:false}),master:true});
-    newSnowHeap.amountLeft = Math.floor(Math.random()*9)+1
+    LCGx = (LCGa * LCGx) % LCGm;
+    newSnowHeap.amountLeft = LCGx % 8 + 2;
+    cg.graphics.achievements.goals.hoarder.goal += newSnowHeap.amountLeft;
     return newSnowHeap;
   }
   createSnowman(x,y) {
@@ -241,6 +293,7 @@ const decoratives = new class {
               cg.graphics.inventory.remove("stick",2);
               cg.graphics.inventory.remove("snow",6);
               cg.graphics.inventory.remove("stone",3);
+              cg.graphics.achievements.progress("snowman",1);
             },this,"E","e");
           } else {
             cg.graphics.thoughtBubble.registerSelection(this.id,cg.images.snowmanIcon,function(){},this,"Missing Items","e");
@@ -265,6 +318,7 @@ const decoratives = new class {
           cg.graphics.thoughtBubble.registerSelection(this.id,cg.images.stoneIcon,function(){
             cg.graphics.thoughtBubble.unregisterSelection(this.id);
             cg.graphics.inventory.add("stone",1);
+            cg.graphics.achievements.progress("hoarder",1);
             this.meta.object.delete = true;
           },this,"E","e");
         }
@@ -276,6 +330,7 @@ const decoratives = new class {
         }
       }}),master:true})
     .attach("Graphic",{level:1,graphic:cg.createGraphic({"type":"image",image:cg.images[["stone0","stone1"][Math.floor(Math.random()*2)]],width:16,height:16,imageSmoothingEnabled:false}),master:true});
+    cg.graphics.achievements.goals.hoarder.goal++;
     return newStone;
   }
   createStick(x,y) {
@@ -287,6 +342,7 @@ const decoratives = new class {
           cg.graphics.thoughtBubble.registerSelection(this.id,cg.images.stickIcon,function(){
             cg.graphics.thoughtBubble.unregisterSelection(this.id);
             cg.graphics.inventory.add("stick",1);
+            cg.graphics.achievements.progress("hoarder",1);
             this.meta.object.delete = true;
           },this,"E","e");
         }
@@ -298,6 +354,7 @@ const decoratives = new class {
         }
       }}),master:true})
     .attach("Graphic",{level:1,graphic:cg.createGraphic({"type":"image",image:cg.images[["stick0","stick1"][Math.floor(Math.random()*2)]],width:16,height:16,imageSmoothingEnabled:false}),master:true});
+    cg.graphics.achievements.goals.hoarder.goal++;
     return newStick;
   }
   createSealPopup(sealX,sealY,triggerX,triggerY) {
@@ -321,6 +378,7 @@ const decoratives = new class {
       if (object.state==1&&object.changeTime+3000<cg.clock) {
         object.Animator.anim = cg.animations.sealDown;
         object.Animator.reset();
+        cg.graphics.achievements.progress("seal",1);
         object.state = 2;
         object.changeTime = cg.clock;
       }
@@ -348,10 +406,10 @@ decoratives.createSealPopup(196.5,522.5,198,450.5);
 // decoratives.createStick(-60,-60);
 
 let objectsToCreate = {
-  "Stone" : [[-237,29],[-118,-63],[-25,48],[206,204],[440,51],[340,-112],[539,-58],[593,-297],[488,-208],[245,-314],[306,-474],[441,-380],[582,144],[391,374],[153,370],[-82,251],[-68,430],[-347,382],[-182,268],[-433,118],[-612,219],[-717,37],[-316,-252],[-36,-383],[-308,-598],[-405,-431],[-539,-112],[-416,-201],[-589,-311],[-618,-236],[-582,-176]],
-  "Stick" : [[-310,-55],[-22,-63],[95,190],[287,150],[337,26],[429,-77],[274,-204],[213,-396],[323,-372],[555,-354],[674,-41],[381,233],[189,286],[67,275],[-104,354],[-319,449],[-494,354],[-669,240],[-548,45],[-335,222],[-281,68],[-374,-52],[-491,-236],[-529,-169],[-582,-399],[-521,-351],[-57,-326],[-96,-474],[-269,-581],[-480,-571],[-441,-435],[-131,-211],[92,23]],
+  "Stone" : [[-237,29],[-118,-63],[-25,48],[206,204],[440,51],[340,-112],[539,-58],[593,-297],[488,-208],[245,-314],[306,-474],[441,-380],[391,374],[153,370],[-82,251],[-68,430],[-347,382],[-182,268],[-433,118],[-612,219],[-717,37],[-316,-252],[-36,-383],[-308,-598],[-405,-431]],
+  "Stick" : [[-310,-55],[-22,-63],[95,190],[287,150],[337,26],[429,-77],[274,-204],[213,-396],[323,-372],[555,-354],[674,-41],[381,233],[189,286],[67,275],[-104,354],[-319,449],[-494,354],[-669,240],[-548,45],[-335,222],[-281,68],[-374,-52],[-57,-326],[-96,-474],[-269,-581],[-480,-571],[-441,-435],[-131,-211],[92,23]],
   "Pond" : [[234,73],[-7,404],[-411,304],[-732,-135],[72,-461],[500,221],[608,-169],[-207,-149],[-116,102],[-411,-515]],
-  "SnowHeap" : [[-205,164],[365,268],[510,-137],[322,-510],[-235,-316],[-682,118]],
+  "SnowHeap" : [[-205,164],[365,268],[510,-137],[322,-510],[-235,-316],[-682,118],[-357,-602],[94,353],[251,-273]],
   "Carrot" : [[-205,401],[523,92],[228,-26],[-679,-46],[-402,495],[-28,-457],[661,-231]]
 }
 
@@ -376,8 +434,9 @@ if (ChoreoGraph.Develop!=undefined) {
 // ChoreoGraph.plugins.Visualisation.v.objectAnnotation.offset[1]=-10;
 // ChoreoGraph.plugins.Physics.settings.showColliders = true;
 
-let tileMapLoaded = false;
+let tileMapsLoaded = 0;
 let cliffsMap;
+let titleMap;
 cg.importTileSetFromFile("data/cliffsSet.json",function(){
   cliffsMap = cg.createGraphic({type:"tileMap",y:16*20});
   cg.importTileMapFromFile("data/cliffsMap.json",function(TileMap) {
@@ -389,9 +448,23 @@ cg.importTileSetFromFile("data/cliffsSet.json",function(){
     TileMap.dontRound = true;
     TileMap.cachedChunkFudge = 1;
     cg.createCollidersFromTileMap(TileMap,cliffsMap.x,cliffsMap.y,2);
-    tileMapLoaded = true;
+    tileMapsLoaded += 1;
+  });
+  
+  titleMap = cg.createGraphic({type:"tileMap",x:2500});
+  cg.importTileMapFromFile("data/titleMap.json",function(TileMap) {
+    TileMap.cache = true;
+    titleMap.tileMap = TileMap;
+    titleMap.layersToDraw = [0,1];
+    TileMap.tileWidth = 16;
+    TileMap.tileHeight = 16;
+    TileMap.dontRound = true;
+    TileMap.cachedChunkFudge = 1;
+    cg.createCollidersFromTileMap(TileMap,titleMap.x,titleMap.y,2);
+    tileMapsLoaded += 1;
   });
 });
+
 
 cg.settings.callbacks.loadingLoop = function(cg,loadedImages) {
   cg.c.fillStyle = "#f2f2f2";

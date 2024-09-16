@@ -3,7 +3,7 @@
         "height": 4300,
         "width": 2
     },
-    "activeFile": "",
+    "activeFile": "D:/Programs/XAMPP/htdocs/PenguinGame/data/cliffsMap.json",
     "expandedProjectPaths": [
     ],
     "file.lastUsedOpenFilter": "All Files (*)",
@@ -31,18 +31,42 @@
                 "x": 6.673913043478262,
                 "y": 42.21739130434783
             }
+        },
+        "D:/Programs/XAMPP/htdocs/PenguinGame/data/cliffsMap.json": {
+            "scale": 4,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 882.25,
+                "y": 116.75
+            }
+        },
+        "D:/Programs/XAMPP/htdocs/PenguinGame/data/cliffsSet.json": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "D:/Programs/XAMPP/htdocs/PenguinGame/data/titleMap.json": {
+            "scale": 3,
+            "selectedLayer": 2,
+            "viewCenter": {
+                "x": 226.99999999999997,
+                "y": 167
+            }
         }
     },
     "last.imagePath": "D:/Programs/XAMPP/htdocs/PenguinGame/images",
-    "map.fixedSize": false,
+    "map.fixedSize": true,
     "map.lastUsedFormat": "json",
     "map.tileHeight": 16,
     "map.tileWidth": 16,
     "mapScene.enableWorlds": true,
     "openFiles": [
+        "D:/Programs/XAMPP/htdocs/PenguinGame/data/cliffsMap.json",
+        "D:/Programs/XAMPP/htdocs/PenguinGame/data/cliffsSet.json"
     ],
     "project": "penguin.tiled-project",
     "recentFiles": [
+        "D:/Programs/XAMPP/htdocs/PenguinGame/data/cliffsSet.json",
+        "D:/Programs/XAMPP/htdocs/PenguinGame/data/cliffsMap.json",
         "D:/Programs/XAMPP/htdocs/MeanwhileInTheAntarctic/cliffsSet.json",
         "D:/Programs/XAMPP/htdocs/MeanwhileInTheAntarctic/cliffsMap.json",
         "D:/Programs/XAMPP/htdocs/MeanwhileInTheAntarctic/untitled.tmj",

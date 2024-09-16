@@ -3,7 +3,7 @@ const interface = {
 }
 
 cg.createObject({"id":"pauseObject",x:70,y:70})
-.attach("Graphic",{level:2,graphic:cg.createGraphic({"type":"rectangle",ox:0,height:80,width:80,fill:true,colour:"#fafafa",CGSpace:false}),keyOverride:"leftBox",master:true})
+.attach("Graphic",{level:2,graphic:cg.createGraphic({"type":"rectangle",ox:0,height:80,width:80,fill:true,colour:"#fafafa",CGSpace:false}),keyOverride:"background",master:true})
 .attach("Graphic",{level:2,graphic:cg.createGraphic({"type":"rectangle",ox:-20,height:60,width:20,fill:false,lineWidth:4,colour:"black",CGSpace:false}),keyOverride:"leftBox",master:true})
 .attach("Graphic",{level:2,graphic:cg.createGraphic({"type":"rectangle",ox:20,height:60,width:20,fill:false,lineWidth:4,colour:"black",CGSpace:false}),keyOverride:"rightBox",master:true})
 .attach("Button",{button:cg.createButton({type:"circle",id:"pauseButton",radius:60,check:"gameplay",CGSpace:false,
@@ -17,6 +17,7 @@ cg.createObject({"id":"pauseObject",x:70,y:70})
   },
   down:function(){
     interface.pause = true;
+    cg.objects.interface.inventory.graphic.o = 0;
     cg.pause();
   }
 }),master:false});
@@ -24,6 +25,7 @@ cg.createObject({"id":"pauseObject",x:70,y:70})
 ChoreoGraph.graphicTypes.pauseMenu = new class pauseMenu {
   setup(graphic,graphicInit,cg) {
     graphic.resumeHover = false;
+    graphic.titleHover = false;
     graphic.toggleAudioHover = false;
   }
   draw(g,cg,ax,ay) {
@@ -54,6 +56,11 @@ ChoreoGraph.graphicTypes.pauseMenu = new class pauseMenu {
       cg.c.roundRect(ax-300,ay-150,600,150,5);
       cg.c.fill();
     }
+    if (g.titleHover) {
+      cg.c.beginPath();
+      cg.c.roundRect(ax-300,ay+40,600,150,5);
+      cg.c.fill();
+    }
     cg.globalAlpha = 1;
 
     cg.c.font = "100px Lilita";
@@ -63,7 +70,7 @@ ChoreoGraph.graphicTypes.pauseMenu = new class pauseMenu {
     cg.c.textBaseline = "middle";
     cg.c.font = "60px Lilita";
     cg.c.fillText("Resume",ax,ay-75);
-    cg.c.fillText("Menu (not added)",ax,ay+115);
+    cg.c.fillText("Return to Title",ax,ay+115);
   }
 }
 ChoreoGraph.graphicTypes.inventory = new class inventory {
@@ -121,81 +128,202 @@ ChoreoGraph.graphicTypes.inventory = new class inventory {
     }
   }
 }
+
+cg.createImage({id:"playUnhoveredImage",file:"play.png",crop:[0*ssg,0*ssg,8*ssg,4*ssg]});
+cg.createImage({id:"playHoveredImage",file:"play.png",crop:[0*ssg,4*ssg,8*ssg,4*ssg]});
+cg.createImage({id:"titleImage",file:"title.png"})
+
+ChoreoGraph.graphicTypes.titleScreen = new class titleScreen {
+  setup(g,graphicInit,cg) {
+    g.playHover = false;
+  }
+  draw(g,cg) {
+    cg.c.fillStyle = "#fafafa";
+    // cg.c.fillRect(600-700/2,200-150/2,700,150);
+    let scaler = 4;
+    cg.c.imageSmoothingEnabled = false;
+    let playImage = g.playHover ? cg.images.playHoveredImage : cg.images.playUnhoveredImage;
+    cg.drawImage(playImage,600,200,8*ssg*scaler,4*ssg*scaler,0,false);
+    cg.drawImage(cg.images.titleImage,600,-200,8*ssg*scaler,4*ssg*scaler,0,false);
+  }
+}
 ChoreoGraph.graphicTypes.achievements = new class achievements {
   setup(g,graphicInit,cg) {
     g.goals = {
-      "5pond" : {
-        "name" : "Pond Spinner",
-        "description" : "Run around a pond 5 times",
-        "completed" : false
-      },
-      "staring" : {
-        "name" : "Staring Contest",
-        "description" : "Stare into the penguins eyes for a minute",
-        "completed" : false
+      "dharntz" : {
+        name : "Dance Club",
+        description : "Wait for the penguin to start dancing",
+        completed : false,
+        icon : "penguinIcon",
+        goal : 1,
+        current : 0
       },
       "fishing" : {
-        "name" : "Fishing",
-        "description" : "Catch a fish",
-        "completed" : false
+        name : "Two Fish",
+        description : "Catch two fish",
+        completed : false,
+        icon : "fishingIcon",
+        goal : 2,
+        current : 0
       },
-      "stone" : {
-        "name" : "Stone Aficionado",
-        "description" : "Collect 5 stones",
-        "completed" : false,
-        "goal" : 5,
-        "current" : 0
+      "hoarder" : {
+        name : "Hoarder",
+        description : "Collect all items in the world",
+        completed : false,
+        icon : "stoneIcon",
+        goal : 0, // Gets set by other code
+        current : 0
+      },
+      "snowman" : {
+        name : "Do you wanna",
+        description : "Build a snowman",
+        completed : false,
+        icon : "snowmanIcon",
+        goal : 1,
+        current : 0
+      },
+      "seal" : {
+        name : "Seal Encounter",
+        description : "Spot a seal in the water",
+        completed : false,
+        icon : "sealIcon",
+        goal : 1,
+        current : 0
       }
     };
     g.padX = 10;
     g.padY = 10;
-    g.circleRadius = 50;
-    g.spacing = 105;
-    g.textX = 0.9;
-    g.textY = 1.1;
+    g.width = 500;
+    g.height = 100;
+    g.borderRadius = 20;
+    g.spacing = 20;
+    g.textX = 100;
+    g.textY = 10;
     g.imageSize = 80;
+    g.iconX = 50;
+    g.iconY = 80;
+    g.progressY = 47;
 
-    g.add = function(item,amount) {
-      if (this.items[item]) {
-        this.items[item] += amount;
-      } else {
-        this.items[item] = amount;
-      }
-    }
-    g.remove = function(item,amount) {
-      if (this.items[item]) {
-        this.items[item] -= amount;
-        if (this.items[item]<=0) {
-          delete this.items[item];
-        }
+    g.currentGoalPopup = null;
+    g.goalPopupTime = 0;
+
+    g.goalPopupInDuration = 1000;
+    g.goalPopupStayDuration = 3000;
+    g.goalPopupOutDuration = 1000;
+
+    g.popupY = 100;
+
+    g.progress = function(goal,amount) {
+      if (this.goals[goal]==undefined) { console.warn("Goal",goal,"does not exist."); return; }
+      this.goals[goal].current = Math.min(this.goals[goal].current+amount,this.goals[goal].goal);
+      if (this.goals[goal].current >= this.goals[goal].goal && this.goals[goal].completed == false) {
+        this.goals[goal].completed = true;
+        g.currentGoalPopup = goal;
+        g.goalPopupTime = cg.clock;
       }
     }
   }
   draw(g,cg) {
-    let column = 0;
-    for (let itemId in g.items) {
-      cg.c.fillStyle = "#dddddd";
-      cg.c.globalAlpha = 0.5;
+    if (cg.paused) {
+      let row = 0;
+      for (let goalId in g.goals) {
+        let goal = g.goals[goalId];
+        cg.c.fillStyle = "#eeeeee";
+        cg.c.globalAlpha = 0.8;
+        cg.c.beginPath();
+        cg.c.roundRect(-g.borderRadius-g.padX-g.width,row*(g.spacing+g.height)+g.borderRadius+g.padY,g.width,g.height,g.borderRadius);
+        cg.c.fill();
+        cg.c.globalAlpha = 1;
+        cg.c.font = "30px Lilita";
+        cg.c.fillStyle = "#333333";
+        cg.c.fillText(goal.name,-g.borderRadius-g.padX-g.width+g.textX,g.height/2+row*(g.spacing+g.height)+g.padY+g.textY);
+        if (goal.completed) {
+          cg.c.strokeStyle = "#333333";
+          cg.c.lineWidth = 5;
+          cg.c.lineCap = "round";
+          cg.c.beginPath();
+          cg.c.moveTo(-g.borderRadius-g.padX-g.width+g.textX,g.height/2+row*(g.spacing+g.height)+g.padY+g.textY-8);
+          cg.c.lineTo(-g.borderRadius-g.padX-g.width+g.textX+cg.c.measureText(goal.name).width,g.height/2+row*(g.spacing+g.height)+g.padY+g.textY-12);
+          cg.c.stroke();
+        }
+        if (goal.current > 0 && goal.goal != goal.current) {
+          cg.c.lineWidth = 5;
+          cg.c.lineCap = "round";
+          cg.c.strokeStyle = "#7f7f7f";
+          cg.c.beginPath();
+          cg.c.moveTo(-g.borderRadius-g.padX-g.width+g.textX,g.height/2+row*(g.spacing+g.height)+g.padY+g.textY+g.progressY);
+          let maxWidth = g.width-g.iconX*2-40;
+          cg.c.lineTo(-g.borderRadius-g.padX-g.width+g.textX+maxWidth,g.height/2+row*(g.spacing+g.height)+g.padY+g.textY+g.progressY);
+          cg.c.stroke();
+          cg.c.strokeStyle = "#88bbeb";
+          cg.c.beginPath();
+          cg.c.moveTo(-g.borderRadius-g.padX-g.width+g.textX,g.height/2+row*(g.spacing+g.height)+g.padY+g.textY+g.progressY);
+          cg.c.lineTo(-g.borderRadius-g.padX-g.width+g.textX+maxWidth*(goal.current/goal.goal),g.height/2+row*(g.spacing+g.height)+g.padY+g.textY+g.progressY);
+          cg.c.stroke();
+        }
+        cg.c.font = "20px Lilita";
+        cg.c.fillStyle = "#666666";
+        cg.c.fillText(goal.description,-g.borderRadius-g.padX-g.width+g.textX,(g.height/2+row*(g.spacing+g.height)+g.padY+g.textY)+30);
+        cg.c.imageSmoothingEnabled = false;
+        cg.c.globalAlpha = 0.8;
+        cg.c.fillStyle = "#fafafa";
+        cg.c.beginPath();
+        cg.c.arc(-g.borderRadius-g.padX-g.width+g.iconX,row*(g.spacing+g.height)+g.iconY,g.imageSize/2,0,Math.PI*2);
+        cg.c.fill();
+        cg.c.globalAlpha = 1;
+        cg.drawImage(cg.images[goal.icon],-g.borderRadius-g.padX-g.width+g.iconX,row*(g.spacing+g.height)+g.iconY,g.imageSize,g.imageSize,0,false);
+        row++;
+      }
+    } else if (g.currentGoalPopup!=null&&g.goalPopupTime+g.goalPopupInDuration+g.goalPopupStayDuration+g.goalPopupOutDuration>cg.clock) {
+      let offsetProportion = 0;
+      let offDistance = g.width + g.padX + 50;
+      let crossOutProportion = 0;
+      if (g.goalPopupTime+g.goalPopupInDuration+g.goalPopupStayDuration < cg.clock) {
+        // Transition Out
+        crossOutProportion = 1;
+        offsetProportion = 1-((cg.clock-g.goalPopupTime-g.goalPopupInDuration-g.goalPopupStayDuration)/g.goalPopupOutDuration);
+        offsetProportion = (offsetProportion**2)*(3-2*offsetProportion);
+      } else if (g.goalPopupTime+g.goalPopupInDuration < cg.clock) {
+        // Stay
+        offsetProportion = 1;
+        crossOutProportion = (cg.clock-g.goalPopupTime-g.goalPopupInDuration)/g.goalPopupStayDuration;
+        crossOutProportion = Math.cbrt((crossOutProportion-0.5)/4)+0.5;
+      } else if (g.goalPopupTime < cg.clock) {
+        // Transition In
+        offsetProportion = (cg.clock-g.goalPopupTime)/g.goalPopupInDuration;
+        offsetProportion = (offsetProportion**2)*(3-2*offsetProportion);
+      }
+      let xOffset = offDistance*(1-offsetProportion);
+      cg.c.fillStyle = "#eeeeee";
+      cg.c.globalAlpha = 0.8;
       cg.c.beginPath();
-      cg.c.arc(-g.circleRadius-g.padX-column*g.spacing,g.circleRadius+g.padY,g.circleRadius,0,Math.PI*2);
+      cg.c.roundRect(-g.borderRadius-g.padX-g.width+xOffset,g.borderRadius+g.padY+g.popupY,g.width,g.height,g.borderRadius);
       cg.c.fill();
       cg.c.globalAlpha = 1;
+      cg.c.font = "30px Lilita";
+      cg.c.fillStyle = "#333333";
+      cg.c.fillText(g.goals[g.currentGoalPopup].name,-g.borderRadius-g.padX-g.width+g.textX+xOffset,g.height/2+g.padY+g.textY+g.popupY);
+      cg.c.strokeStyle = "#333333";
+      cg.c.lineWidth = 5;
+      cg.c.lineCap = "round";
+      cg.c.beginPath();
+      cg.c.moveTo(-g.borderRadius-g.padX-g.width+g.textX+xOffset,g.height/2+g.padY+g.textY-10+g.popupY);
+      cg.c.lineTo(-g.borderRadius-g.padX-g.width+g.textX+xOffset+(crossOutProportion*cg.c.measureText(g.goals[g.currentGoalPopup].name).width),g.height/2+g.padY+g.textY-10+g.popupY);
+      cg.c.stroke();
+      cg.c.font = "20px Lilita";
+      cg.c.fillStyle = "#666666";
+      cg.c.fillText(g.goals[g.currentGoalPopup].description,-g.borderRadius-g.padX-g.width+g.textX+xOffset,(g.height/2+g.padY+g.textY)+30+g.popupY);
       cg.c.imageSmoothingEnabled = false;
-      cg.drawImage(cg.images[g.images[itemId]],-g.circleRadius-g.padX-column*g.spacing,g.circleRadius+g.padY,g.imageSize,g.imageSize,0,false);
-      cg.c.font = "40px Lilita";
-      cg.c.fillStyle = "#88bbeb";
-      cg.c.strokeStyle = "#ffffff";
-      cg.c.lineWidth = 10;
-      cg.c.textAlign = "left";
-      cg.c.strokeText(g.items[itemId],-g.padX-(column*g.spacing)-(g.circleRadius*2)*g.textX,(g.circleRadius*2)*g.textY+g.padY);
-      cg.c.fillText(g.items[itemId],-g.padX-(column*g.spacing)-(g.circleRadius*2)*g.textX,(g.circleRadius*2)*g.textY+g.padY);
-      column++;
+      cg.drawImage(cg.images[g.goals[g.currentGoalPopup].icon],-g.borderRadius-g.padX-g.width+g.iconX+xOffset,g.iconY+g.popupY,g.imageSize,g.imageSize,0,false);
     }
   }
 }
+
 cg.createObject({"id":"interface",x:0,y:0})
 .attach("Graphic",{keyOverride:"pauseMenu",level:4,graphic:cg.createGraphic({type:"pauseMenu",id:"pauseMenu",CGSpace:false,canvasSpaceXAnchor:0.5,canvasSpaceYAnchor:0.5}),master:true})
 .attach("Graphic",{keyOverride:"inventory",level:4,graphic:cg.createGraphic({type:"inventory",id:"inventory",CGSpace:false,canvasSpaceXAnchor:1,canvasSpaceYAnchor:0}),master:true})
+.attach("Graphic",{keyOverride:"titleScreen",level:4,graphic:cg.createGraphic({type:"titleScreen",id:"titleScreen",CGSpace:false,canvasSpaceXAnchor:0,canvasSpaceYAnchor:0.5,o:0}),master:true})
+.attach("Graphic",{keyOverride:"achievements",level:4,graphic:cg.createGraphic({type:"achievements",id:"achievements",CGSpace:false,canvasSpaceXAnchor:1,canvasSpaceYAnchor:0}),master:true})
 .attach("Button",{oy:-75,button:cg.createButton({type:"rect",id:"resumeButton",width:600,height:150,check:"pauseMenu",CGSpace:false,canvasSpaceXAnchor:0.5,canvasSpaceYAnchor:0.5,
   enter:function(){
     cg.objects.interface.pauseMenu.graphic.resumeHover = true;
@@ -204,6 +332,21 @@ cg.createObject({"id":"interface",x:0,y:0})
     cg.objects.interface.pauseMenu.graphic.resumeHover = false;
   },
   down:function(){
+    interface.pause = false;
+    cg.objects.interface.inventory.graphic.o = 1;
+    cg.unpause();
+  }
+}),master:false})
+.attach("Button",{oy:115,button:cg.createButton({type:"rect",id:"titleButton",width:600,height:150,check:"pauseMenu",CGSpace:false,canvasSpaceXAnchor:0.5,canvasSpaceYAnchor:0.5,
+  enter:function(){
+    cg.objects.interface.pauseMenu.graphic.titleHover = true;
+  },
+  exit:function(){
+    cg.objects.interface.pauseMenu.graphic.titleHover = false;
+  },
+  down:function(){
+    onTitleScreen = true;
+    cg.objects.interface.titleScreen.graphic.o = 1;
     interface.pause = false;
     cg.unpause();
   }
@@ -218,11 +361,30 @@ cg.createObject({"id":"interface",x:0,y:0})
   down:function(){
     ChoreoGraph.AudioController.masterVolume = !ChoreoGraph.AudioController.masterVolume;
   }
+}),master:false})
+.attach("Button",{oy:200,ox:600,button:cg.createButton({type:"rect",id:"play",width:700,height:150,check:"titleScreen",CGSpace:false,canvasSpaceXAnchor:0,canvasSpaceYAnchor:0.5,
+  enter:function(){
+    cg.objects.interface.titleScreen.graphic.playHover = true;
+  },
+  exit:function(){
+    cg.objects.interface.titleScreen.graphic.playHover = false;
+  },
+  down:function(){
+    Player.nextDharntzTime = cg.clock + 10000 + Math.random()*20000;
+    onTitleScreen = false;
+    cg.objects.interface.titleScreen.graphic.o = 0;
+    cg.camera.maximumSize = fancyCamera.zoomedInMaximumSize;
+    cg.camera.x = Player.Transform.x;
+    cg.camera.y = Player.Transform.y;
+    cg.objects.interface.inventory.graphic.o = 1;
+    fancyCamera.targetTargetOut = false;
+  }
 }),master:false});
 
 cg.settings.callbacks.updateButtonChecks = function(cg) {
   return {
+    "titleScreen" : onTitleScreen,
     "pauseMenu" : interface.pause,
-    "gameplay" : cg.paused==false
+    "gameplay" : cg.paused==false&&onTitleScreen==false
   }
 }

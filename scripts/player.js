@@ -248,6 +248,7 @@ ChoreoGraph.graphicTypes.fishingLine = new class fishingLine {
         if (timeSinceCaught>g.catchDuration) {
           g.endCast();
           cg.graphics.inventory.add("fish",1);
+          cg.graphics.achievements.progress("fishing",1);
           g.reregister();
         }
       } else if (cg.clock-g.castTime<g.castDuration) {
@@ -342,6 +343,7 @@ Player.movement = function() {
   let movementSpeed = 80;
   let movementVector = [0,0];
   if (!Player.disableUserMovement) {
+    if (onTitleScreen) { return; }
     if (ChoreoGraph.Input.keyStates["w"]||ChoreoGraph.Input.keyStates["up"]) { movementVector[1] -= 1; }
     if (ChoreoGraph.Input.keyStates["s"]||ChoreoGraph.Input.keyStates["down"]) { movementVector[1] += 1; }
     if (ChoreoGraph.Input.keyStates["a"]||ChoreoGraph.Input.keyStates["left"]) { movementVector[0] -= 1; }
@@ -480,8 +482,11 @@ function setIdleAnimations(penguin,isPlayer=false) {
   if (penguin.nextDharntzTime==undefined) {
     penguin.nextDharntzTime = cg.clock + 10000 + Math.random()*20000;
   } else if (penguin.nextDharntzTime<cg.clock) {
-    newAnimation = penguin.penAnim.dharntz;
-    penguin.Animator.reset();
+    if (Player.fishingLine.isFishing==false) {
+      newAnimation = penguin.penAnim.dharntz;
+      cg.graphics.achievements.progress("dharntz",1);
+      penguin.Animator.reset();
+    }
     penguin.nextDharntzTime = cg.clock + 10000 + Math.random()*20000;
   }
   if (newAnimation!=null&&newAnimation.id!=penguin.Animator.anim.id) {
