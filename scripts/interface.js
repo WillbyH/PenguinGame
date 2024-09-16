@@ -72,7 +72,8 @@ ChoreoGraph.graphicTypes.inventory = new class inventory {
     g.images = {
       "stone" : "stoneIcon",
       "stick" : "stickIcon",
-      "fish" : "fishIcon"
+      "fish" : "fishIcon",
+      "snow" : "snowIcon"
     }
     g.padX = 10;
     g.padY = 10;
