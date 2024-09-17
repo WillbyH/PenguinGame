@@ -10,7 +10,9 @@ cg.createImage({id:"stoneIcon",file:"icons.png",crop:[0*ssg,0*ssg,1*ssg,1*ssg]})
 cg.createImage({id:"stickIcon",file:"icons.png",crop:[1*ssg,0*ssg,1*ssg,1*ssg]});
 cg.createImage({id:"snowIcon",file:"icons.png",crop:[2*ssg,0*ssg,1*ssg,1*ssg]});
 cg.createImage({id:"fishingIcon",file:"icons.png",crop:[3*ssg,0*ssg,1*ssg,1*ssg]});
-cg.createImage({id:"fishIcon",file:"icons.png",crop:[4*ssg,0*ssg,1*ssg,1*ssg]});
+cg.createImage({id:"fishAnchovyIcon",file:"icons.png",crop:[4*ssg,0*ssg,1*ssg,1*ssg]});
+cg.createImage({id:"fishKrillIcon",file:"icons.png",crop:[4*ssg,1*ssg,1*ssg,1*ssg]});
+cg.createImage({id:"fishMackerelIcon",file:"icons.png",crop:[4*ssg,2*ssg,1*ssg,1*ssg]});
 cg.createImage({id:"snowmanIcon",file:"icons.png",crop:[0*ssg,1*ssg,1*ssg,1*ssg]});
 cg.createImage({id:"penguinIcon",file:"icons.png",crop:[1*ssg,1*ssg,1*ssg,1*ssg]});
 cg.createImage({id:"sealIcon",file:"icons.png",crop:[2*ssg,1*ssg,1*ssg,1*ssg]});
@@ -19,7 +21,7 @@ cg.createImage({id:"cliffsSetImage",file:"cliffs.png"});
 
 cg.createImage({id:"detail0",file:"world.png",crop:[0*ssg,2*ssg,3*ssg,2*ssg]});
 
-let onTitleScreen = false;
+let onTitleScreen = true;
 if (onTitleScreen) {
   cg.objects.interface.titleScreen.graphic.o = 1;
 }
@@ -71,9 +73,11 @@ cg.settings.callbacks.keyDown = function(key) {
   if (key=="escape") {
     if (interface.pause) {
       interface.pause = false;
+      cg.objects.interface.inventory.graphic.o = 1;
       cg.unpause();
     } else {
       interface.pause = true;
+      cg.objects.interface.inventory.graphic.o = 0;
       cg.pause();
     }
   } else if (key=="m") {
@@ -87,7 +91,12 @@ cg.settings.callbacks.keyDown = function(key) {
       if (Player.fishingLine.isCast) {
         if (!Player.fishingLine.isLatched) {
           if (Player.fishingLine.nextCatch-cg.clock+Player.fishingLine.catchInterval<Player.fishingLine.catchInterval) { // Latch Fish
-            cg.graphics.thoughtBubble.registerSelection("tug",cg.images.fishIcon,function(){
+            let icons = {
+              "anchovy" : "fishAnchovyIcon",
+              "krill" : "fishKrillIcon",
+              "mackerel" : "fishMackerelIcon"
+            }
+            cg.graphics.thoughtBubble.registerSelection("tug",cg.images[icons[Player.fishingLine.nextFishType]],function(){
               Player.fishingLine.tug();
             },this,"E","e");
             Player.fishingLine.isLatched = true;
@@ -231,6 +240,9 @@ const decoratives = new class {
               this.meta.object.Transform.y - 23
             ];
             Player.targetCallback = function() {
+              cg.graphics.thoughtBubble.registerSelection("cast",cg.images.fishingIcon,function(){
+                cg.graphics.thoughtBubble.unregisterSelection("cast");
+              },this,"E","e");
               Player.fishingLine.isFishing = true;
             }
           },this,"E","e");

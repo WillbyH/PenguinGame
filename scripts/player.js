@@ -191,6 +191,8 @@ ChoreoGraph.graphicTypes.fishingLine = new class fishingLine {
 
     g.pondId = null;
 
+    g.nextFishType = "anchovy";
+
     g.reregister = function() {
       cg.graphics.thoughtBubble.registerSelection(this.pondId,cg.images.fishingIcon,function(){
         cg.graphics.thoughtBubble.unregisterSelection(this.id);
@@ -235,7 +237,7 @@ ChoreoGraph.graphicTypes.fishingLine = new class fishingLine {
       .attach("Animator",{anim:cg.animations.smallSplash,selfDestructObject:true})
     }
     if (g.isCast) {
-      if (g.isCaught) {
+      if (g.isCaught) { // Reeling in line (its pulling up a fish)
         let timeSinceCaught = cg.clock-g.caughtTime;
         let catchHeight = 28.3-28.3*(timeSinceCaught/g.catchDuration);
         cg.c.strokeStyle = "#ffffff";
@@ -244,14 +246,21 @@ ChoreoGraph.graphicTypes.fishingLine = new class fishingLine {
         cg.c.lineTo(ax,ay-3+catchHeight);
         cg.c.stroke();
         cg.c.imageSmoothingEnabled = false;
-        cg.drawImage(cg.images.fishIcon,ax,ay-3+catchHeight,cg.z*3,cg.z*3,0,false);
+        let icons = {
+          "anchovy" : "fishAnchovyIcon",
+          "krill" : "fishKrillIcon",
+          "mackerel" : "fishMackerelIcon"
+        }
+        console.log(cg,cg.images[icons[Player.fishingLine.nextFishType]],cg.images,icons[Player.fishingLine.nextFishType],Player.fishingLine.nextFishType)
+        cg.drawImage(cg.images[icons[Player.fishingLine.nextFishType]],ax,ay-3+catchHeight,cg.z*3,cg.z*3,0,false);
         if (timeSinceCaught>g.catchDuration) {
           g.endCast();
-          cg.graphics.inventory.add("fish",1);
+          cg.graphics.inventory.add(g.nextFishType,1);
+          g.nextFishType = ["anchovy","krill","mackerel"][Math.floor(Math.random()*3)];
           cg.graphics.achievements.progress("fishing",1);
           g.reregister();
         }
-      } else if (cg.clock-g.castTime<g.castDuration) {
+      } else if (cg.clock-g.castTime<g.castDuration) { // Casting line (its falling)
         function getCastHeight(t,length,heightMultiplyer) {
           t = t/length;
           if (t<0.25) {
@@ -270,7 +279,7 @@ ChoreoGraph.graphicTypes.fishingLine = new class fishingLine {
         cg.c.fillStyle = "#db2c00";
         cg.c.fillRect(ax-0.8,ay-3-castHeight,1.6,1.6);
       } else {
-        if (g.isLatched) { // Latched
+        if (g.isLatched) { // Latched (mini game)
           cg.c.beginPath();
           cg.c.moveTo(ax,ay-3);
           let swaySineX = Math.sin((cg.clock-g.latchTime)/2000*2*Math.PI)*2;
@@ -288,10 +297,15 @@ ChoreoGraph.graphicTypes.fishingLine = new class fishingLine {
           cg.c.strokeStyle = "#000000";
           cg.c.lineWidth = 1;
           cg.c.strokeRect(ax+8,ay-15,6,20);
-        } else { // Casted
+        } else { // Casted (waiting)
+          let lineShake = 0;
+          if (g.nextCatch-cg.clock+g.catchInterval<0||true) {
+            lineShake = Math.sin((cg.clock-g.latchTime)/1200*2*Math.PI);
+          }
+          console.log(lineShake)
           cg.c.beginPath();
           cg.c.moveTo(ax,ay-3);
-          cg.c.lineTo(ax,ay+25);
+          cg.c.lineTo(ax+lineShake,ay+25);
           cg.c.stroke();
           if (cg.clock>g.nextCatch) {
             if (g.nextCatch-cg.clock+g.catchInterval<0) {
