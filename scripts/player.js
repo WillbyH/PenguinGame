@@ -251,7 +251,6 @@ ChoreoGraph.graphicTypes.fishingLine = new class fishingLine {
           "krill" : "fishKrillIcon",
           "mackerel" : "fishMackerelIcon"
         }
-        console.log(cg,cg.images[icons[Player.fishingLine.nextFishType]],cg.images,icons[Player.fishingLine.nextFishType],Player.fishingLine.nextFishType)
         cg.drawImage(cg.images[icons[Player.fishingLine.nextFishType]],ax,ay-3+catchHeight,cg.z*3,cg.z*3,0,false);
         if (timeSinceCaught>g.catchDuration) {
           g.endCast();
@@ -299,10 +298,9 @@ ChoreoGraph.graphicTypes.fishingLine = new class fishingLine {
           cg.c.strokeRect(ax+8,ay-15,6,20);
         } else { // Casted (waiting)
           let lineShake = 0;
-          if (g.nextCatch-cg.clock+g.catchInterval<0||true) {
-            lineShake = Math.sin((cg.clock-g.latchTime)/1200*2*Math.PI);
+          if (cg.clock>g.nextCatch) {
+            lineShake = Math.sin((cg.clock-g.latchTime)/400*2*Math.PI)*0.4;
           }
-          console.log(lineShake)
           cg.c.beginPath();
           cg.c.moveTo(ax,ay-3);
           cg.c.lineTo(ax+lineShake,ay+25);
@@ -312,11 +310,11 @@ ChoreoGraph.graphicTypes.fishingLine = new class fishingLine {
               g.nextCatch = cg.clock + g.minimumCatchWait + Math.random()*g.randomCatchWait;
             } else {
               cg.c.fillStyle = "#db2c00";
-              cg.c.fillRect(ax-0.8,ay+25,1.6,0.8);
+              cg.c.fillRect(ax-0.8+lineShake,ay+25,1.6,0.8);
             }
           } else {
             cg.c.fillStyle = "#db2c00";
-            cg.c.fillRect(ax-0.8,ay+24,1.6,1.6);
+            cg.c.fillRect(ax-0.8+lineShake,ay+24,1.6,1.6);
           }
         }
       }
@@ -341,7 +339,7 @@ const Player = cg.createObject({"id":"Player",stopNPC:true,x:0,y:0,
 });
 Player.penAnim = createPenguinGraphicsPackage();
 Player.attach("Graphic",{level:2,graphic:Player.penAnim.idleSouth.data[0][1],master:true})
-.attach("Graphic",{level:2,graphic:cg.createGraphic({type:"thoughtBubble",id:"thoughtBubble",oy:-17}),master:false})
+.attach("Graphic",{level:3,graphic:cg.createGraphic({type:"thoughtBubble",id:"thoughtBubble",oy:-17}),master:false})
 .attach("Graphic",{level:2,graphic:cg.createGraphic({type:"fishingLine",id:"fishingLineGraphic"}),master:true,keyOverride:"fishingLineGraphic"})
 .attach("Animator",{anim:Player.penAnim.idleSouth})
 .attach("Collider",{collider:cg.createCollider({type:"circle",id:"playerCollider",radius:6,groups:[0,1],master:true}),oy:5})

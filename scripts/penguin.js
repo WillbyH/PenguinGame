@@ -16,6 +16,7 @@ cg.createImage({id:"fishMackerelIcon",file:"icons.png",crop:[4*ssg,2*ssg,1*ssg,1
 cg.createImage({id:"snowmanIcon",file:"icons.png",crop:[0*ssg,1*ssg,1*ssg,1*ssg]});
 cg.createImage({id:"penguinIcon",file:"icons.png",crop:[1*ssg,1*ssg,1*ssg,1*ssg]});
 cg.createImage({id:"sealIcon",file:"icons.png",crop:[2*ssg,1*ssg,1*ssg,1*ssg]});
+cg.createImage({id:"stareIcon",file:"icons.png",crop:[3*ssg,1*ssg,1*ssg,1*ssg]});
 
 cg.createImage({id:"cliffsSetImage",file:"cliffs.png"});
 
@@ -70,14 +71,18 @@ cg.settings.callbacks.loopAfter = function(cg) {
 }
 
 cg.settings.callbacks.keyDown = function(key) {
-  if (key=="escape") {
+  if (key=="escape"||key=="p"&&!onTitleScreen) {
     if (interface.pause) {
       interface.pause = false;
       cg.objects.interface.inventory.graphic.o = 1;
+      cg.objects.interface.controlsTip.graphic.o = 0;
+      cg.objects.interface.controlsTipBackground.graphic.o = 0;
       cg.unpause();
     } else {
       interface.pause = true;
       cg.objects.interface.inventory.graphic.o = 0;
+      cg.objects.interface.controlsTip.graphic.o = 1;
+      cg.objects.interface.controlsTipBackground.graphic.o = 1;
       cg.pause();
     }
   } else if (key=="m") {
@@ -286,10 +291,33 @@ const decoratives = new class {
     return newSnowHeap;
   }
   createSnowman(x,y) {
-    let newPond = cg.createObject({"id":"snowman_"+ChoreoGraph.createId(),stopNPC:true,x:x,y:y})
-    .attach("Collider",{collider:cg.createCollider({type:"circle",static:true,radius:11,groups:[0]}),master:true,keyOverride:"PhysicsCollider"})
-    .attach("Graphic",{level:1,graphic:cg.createGraphic({"type":"image",image:cg.images.snowman,width:32,height:32,imageSmoothingEnabled:false}),master:true});
-    return newPond;
+    let newSnowman = cg.createObject({"id":"snowman_"+ChoreoGraph.createId(),stopNPC:true,x:x,y:y})
+    for (let i=0;i<4;i++) {
+      let snowmanImage = cg.createImage({id:"snowmanImage_"+newSnowman.id+"_"+i,file:"world.png",crop:[ssg*2+ssg*2*i,ssg*2,ssg*2,ssg*2]});
+      cg.createGraphic({type:"image",id:"snowmanFrame"+newSnowman.id+"_"+i,image:snowmanImage,width:ssg*2,height:ssg*2,imageSmoothingEnabled:false});
+    }
+    cg.createGraphicAnimation({
+      frames:["snowmanFrame"+newSnowman.id+"_0","snowmanFrame"+newSnowman.id+"_1","snowmanFrame"+newSnowman.id+"_2","snowmanFrame"+newSnowman.id+"_2"],
+      GraphicKey:["Graphic","graphic"],
+      id:"snowmanCreate_"+newSnowman.id,
+      frameRate:3,
+      endCallback:function(object,Animator) {
+        if (this.id.startsWith("snowmanCreate_")) {
+          Animator.anim = object.idleAnim;
+          Animator.reset();
+        }
+      }
+    });
+    newSnowman.idleAnim = cg.createGraphicAnimation({
+      frames:["snowmanFrame"+newSnowman.id+"_3"],
+      GraphicKey:["Graphic","graphic"],
+      id:"snowmanIdle_"+newSnowman.id,
+      frameRate:0.1
+    });
+    newSnowman.attach("Collider",{collider:cg.createCollider({type:"circle",static:true,radius:11,groups:[0]}),master:true,keyOverride:"PhysicsCollider"})
+    .attach("Graphic",{level:1,graphic:cg.createGraphic({"type":"image",image:cg.images.snowman,width:32,height:32,imageSmoothingEnabled:false}),master:true})
+    .attach("Animator",{anim:cg.animations["snowmanCreate_"+newSnowman.id]});
+    return newSnowman;
   }
   createCarrot(x,y) {
     let id = "carrot_"+ChoreoGraph.createId();
@@ -422,7 +450,7 @@ let objectsToCreate = {
   "Stick" : [[-310,-55],[-22,-63],[95,190],[287,150],[337,26],[429,-77],[274,-204],[213,-396],[323,-372],[555,-354],[674,-41],[381,233],[189,286],[67,275],[-104,354],[-319,449],[-494,354],[-669,240],[-548,45],[-335,222],[-281,68],[-374,-52],[-57,-326],[-96,-474],[-269,-581],[-480,-571],[-441,-435],[-131,-211],[92,23]],
   "Pond" : [[234,73],[-7,404],[-411,304],[-732,-135],[72,-461],[500,221],[608,-169],[-207,-149],[-116,102],[-411,-515]],
   "SnowHeap" : [[-205,164],[365,268],[510,-137],[322,-510],[-235,-316],[-682,118],[-357,-602],[94,353],[251,-273]],
-  "Carrot" : [[-205,401],[523,92],[228,-26],[-679,-46],[-402,495],[-28,-457],[661,-231]]
+  "Carrot" : [[233,446],[523,92],[228,-26],[-679,-46],[-402,495],[-28,-457],[661,-231]]
 }
 
 for (let object in objectsToCreate) {

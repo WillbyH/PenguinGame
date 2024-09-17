@@ -129,10 +129,10 @@ ChoreoGraph.Develop = new class Develop {
           console.warn("Prototype already exists:",name);
         }
       },
-      placedOrder: [], // for undo
       selectedButton: null,
       newObject: null,
-      grabbed: false
+      grabbed: false,
+      createdObjects: {}
     }
     this.interface = {
       styles: document.createElement("style"),
@@ -1122,11 +1122,27 @@ ChoreoGraph.Develop = new class Develop {
       dev.objectPlacer.newObject.Transform.y = cg.getTransYreverse(ChoreoGraph.Input.cursor.y);
     }
     let cursorOnCanvas = ChoreoGraph.Input.cursor.x>0&&ChoreoGraph.Input.cursor.x<cg.cw&&ChoreoGraph.Input.cursor.y>0&&ChoreoGraph.Input.cursor.y<cg.ch;
-    if (dev.frameLClick&&!ChoreoGraph.Input.keyStates[ChoreoGraph.Develop.cameraController.hotkey]&&cursorOnCanvas) {
-      if (ChoreoGraph.Develop.objectPlacer.selectedButton==null) {
-        ChoreoGraph.Develop.objectPlacer.newObject = null;
+    if (dev.frameLClick&&!ChoreoGraph.Input.keyStates[dev.cameraController.hotkey]&&cursorOnCanvas) {
+      if (dev.objectPlacer.selectedButton==null) {
+        dev.objectPlacer.newObject = null;
       } else {
-        ChoreoGraph.Develop.objectPlacer.newObject = ChoreoGraph.Develop.objectPlacer.selectedButton.CGObjectPrototype.createFunction(cg.getTransXreverse(ChoreoGraph.Input.cursor.x),cg.getTransYreverse(ChoreoGraph.Input.cursor.y));
+        let objectType = dev.objectPlacer.selectedButton.CGObjectPrototype.name;
+        if (dev.objectPlacer.createdObjects[objectType]===undefined) { dev.objectPlacer.createdObjects[objectType] = []; }
+        dev.objectPlacer.createdObjects[objectType].push(dev.objectPlacer.newObject);
+
+        // Create Info Dump
+        let info = "";
+        for (let objectType in dev.objectPlacer.createdObjects) {
+          info += objectType + ": ";
+          for (let object of dev.objectPlacer.createdObjects[objectType]) {
+            info += "["+Math.floor(object.Transform.x) + "," + Math.floor(object.Transform.y) + "],";
+          }
+          info = info.slice(0,-1);
+          info += "<br>";
+        }
+        dev.interface.interactives.objectPlacerCreations.innerHTML = info;
+
+        dev.objectPlacer.newObject = dev.objectPlacer.selectedButton.CGObjectPrototype.createFunction(cg.getTransXreverse(ChoreoGraph.Input.cursor.x),cg.getTransYreverse(ChoreoGraph.Input.cursor.y));
       }
     }
   }
@@ -1247,6 +1263,9 @@ ChoreoGraph.Develop = new class Develop {
     this.interface.interactives.objectPlacer = document.createElement("div");
     this.interface.interactives.objectPlacer.style = "font-family:Consolas;";
     this.interface.section.appendChild(this.interface.interactives.objectPlacer);
+    this.interface.interactives.objectPlacerCreations = document.createElement("div");
+    this.interface.interactives.objectPlacerCreations.style = "font-family:Consolas;";
+    this.interface.section.appendChild(this.interface.interactives.objectPlacerCreations);
     this.interface.interactives.objectGizmoEdits = document.createElement("div");
     this.interface.interactives.objectGizmoEdits.style = "font-family:Consolas;";
     this.interface.section.appendChild(this.interface.interactives.objectGizmoEdits);
@@ -1276,6 +1295,12 @@ ChoreoGraph.Develop = new class Develop {
         ChoreoGraph.plugins.Visualisation.v.blocks.active=(!(ChoreoGraph.plugins.Visualisation.v.blocks.active));
         this.className = "develop_button " + (ChoreoGraph.plugins.Visualisation.v.blocks.active ? "btn_on" : "btn_off");
         this.innerText = ChoreoGraph.plugins.Visualisation.v.blocks.active ? "Hide Blocks" : "Show Blocks";
+      });
+      this.interface.interactives.showCamera = this.createButton(ChoreoGraph.plugins.Visualisation.v.camera.active ? "Hide Camera" : "Show Camera",ChoreoGraph.plugins.Visualisation.v.camera.active ? "btn_on" : "btn_off",
+      function(){
+        ChoreoGraph.plugins.Visualisation.v.camera.active=(!(ChoreoGraph.plugins.Visualisation.v.camera.active));
+        this.className = "develop_button " + (ChoreoGraph.plugins.Visualisation.v.camera.active ? "btn_on" : "btn_off");
+        this.innerText = ChoreoGraph.plugins.Visualisation.v.camera.active ? "Hide Camera" : "Show Camera";
       });
     }
     if (ChoreoGraph.plugins.Physics!==undefined) {

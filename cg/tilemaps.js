@@ -2,6 +2,7 @@ ChoreoGraph.graphicTypes.tileMap = new class TileMapGraphic {
   setup(graphic,graphicInit,cg) {
     graphic.tileMap = null;
     graphic.addCacheToDocument = false;
+    graphic.dontCull = false;
   }
 
   draw(graphic,cg,ax,ay) {
@@ -9,8 +10,7 @@ ChoreoGraph.graphicTypes.tileMap = new class TileMapGraphic {
 
     if (TileMap==null||TileMap==undefined) { return; }
 
-    cg.c.save();
-    cg.c.imageSmoothingEnabled = false;
+    cg.c.resetTransform();
 
     let translateX = ((TileMap.width*TileMap.tileWidth*0.5)*cg.z);
     let translateY = ((TileMap.height*TileMap.tileHeight*0.5)*cg.z);
@@ -21,6 +21,73 @@ ChoreoGraph.graphicTypes.tileMap = new class TileMapGraphic {
       ax -= Math.round(translateX);
       ay -= Math.round(translateY);
     }
+
+    let layersToDraw = graphic.layersToDraw;
+    if (layersToDraw==undefined||layersToDraw==null) {
+      layersToDraw = [...Array(TileMap.layers.length).keys()]
+    }
+    let chunksToDraw = [];
+    // let cameraAnnotated = false;
+    for (let chunk of TileMap.chunks) {
+      if (graphic.dontCull) {
+        chunksToDraw.push(chunk);
+        continue;
+      }
+      // This part of the code for checking which chunks are on screen
+      let chunkX = chunk.x * TileMap.tileWidth + graphic.x + graphic.ox - translateX/cg.z;
+      let chunkY = chunk.y * TileMap.tileHeight + graphic.y + graphic.oy - translateY/cg.z;
+      let chunkWidth = chunk.width * TileMap.tileWidth * cg.z;
+      let chunkHeight = chunk.height * TileMap.tileHeight * cg.z;
+      let cameraWidth = cg.cw;
+      let cameraHeight = cg.ch;
+      let scaler = 1;
+      if (cg.camera.scaleMode=="pixels") {
+        scaler = cg.camera.z*cg.camera.scale;
+      } else if (cg.camera.scaleMode=="maximum") {
+        if (cg.cw*(cg.camera.WHRatio)>cg.ch*(1-cg.camera.WHRatio)) {
+          scaler = cg.camera.z*(cg.cw/cg.camera.maximumSize);
+        } else {
+          scaler = cg.camera.z*(cg.ch/cg.camera.maximumSize);
+        }
+      }
+      cameraWidth = cameraWidth/scaler*cg.z;
+      cameraHeight = cameraHeight/scaler*cg.z;
+      let cameraTopLeftX = cg.camera.x-cameraWidth/2/cg.z;
+      let cameraTopLeftY = cg.camera.y-cameraHeight/2/cg.z;
+      // cg.c.globalAlpha = 1;
+      // if (cameraAnnotated==false) {
+      //   cg.c.textAlign = "center";
+      //   cg.c.fillStyle = "#ff0000";
+      //   cg.c.fillRect(cg.getTransX(cameraTopLeftX),cg.getTransY(cameraTopLeftY),10,10);
+      //   cg.c.fillStyle = "#000000";
+      //   cg.c.fillText(cameraTopLeftX.toFixed(2) + "," + cameraTopLeftY.toFixed(2),cg.getTransX(cameraTopLeftX),cg.getTransY(cameraTopLeftY)-20);
+      //   cg.c.fillStyle = "#00ff00";
+      //   cg.c.fillRect(cg.getTransX(cameraBottomRightX)-10,cg.getTransY(cameraBottomRightY)-10,10,10);
+      //   cg.c.fillStyle = "#000000";
+      //   cg.c.fillText(cameraBottomRightX.toFixed(2) + "," + cameraBottomRightY.toFixed(2),cg.getTransX(cameraBottomRightX),cg.getTransY(cameraBottomRightY)+20);
+      //   cameraAnnotated = true;
+      // }
+      // cg.c.fillStyle = "#0000ff";
+      // cg.c.beginPath();
+      // cg.c.arc(cg.getTransX(chunkX),cg.getTransY(chunkY),5,0,Math.PI*2);
+      // cg.c.fill();
+      // cg.c.fillStyle = "#000000";
+      // cg.c.textAlign = "center";
+      // cg.c.fillText(chunkX + "," + chunkY,cg.getTransX(chunkX),cg.getTransY(chunkY)+15);
+      // cg.c.fillStyle = "#ff00ff";
+      // cg.c.globalAlpha = 0.5;
+      // cg.c.lineWidth = 2;
+      // console.log(chunkWidth)
+      // cg.c.strokeRect(cg.getTransX(chunkX),cg.getTransY(chunkY),chunkWidth,chunkHeight);
+      // console.log(cameraTopLeftX,cameraBottomRightX)
+      if (chunkX < cameraTopLeftX + cameraWidth/cg.z && chunkX + chunkWidth/cg.z > cameraTopLeftX && chunkY < cameraTopLeftY + cameraHeight/cg.z && chunkY + chunkHeight/cg.z > cameraTopLeftY) {
+        chunksToDraw.push(chunk);
+      }
+    }
+    // console.log(chunksToDraw.length);
+
+    cg.c.save();
+    cg.c.imageSmoothingEnabled = false;
 
     // Tilemaps require very precise scaling to not look awful
     let gx = graphic.x+graphic.ox;
@@ -41,21 +108,9 @@ ChoreoGraph.graphicTypes.tileMap = new class TileMapGraphic {
       width = Math.round(width * cg.z);
       height = Math.round(height * cg.z);
     }
+
     let missingTiles = [];
-    let layersToDraw = graphic.layersToDraw;
-    if (layersToDraw==undefined||layersToDraw==null) {
-      layersToDraw = [...Array(TileMap.layers.length).keys()]
-    }
-    let chunksToDraw = [];
-    for (let chunk of TileMap.chunks) {
-      // This part of the code for checking which chunks are on screen
-      // let chunkX = chunk.x * TileMap.tilePixelWidth - graphic.x - graphic.ox - ax;
-      // let chunkY = chunk.y * TileMap.tilePixelHeight - graphic.y - graphic.oy - ay;
-      // let chunkWidth = chunk.width * TileMap.tileWidth;
-      // let chunkHeight = chunk.height * TileMap.tileHeight;
-      // console.log(chunkX,chunkY,chunkWidth,chunkHeight);
-      chunksToDraw.push(chunk);
-    }
+    
     for (let l of layersToDraw) {
       if (TileMap.layers[l].visible==false) { continue; }
       let chunkNum = 0;
@@ -103,9 +158,13 @@ ChoreoGraph.graphicTypes.tileMap = new class TileMapGraphic {
           let chunkX = ax + (chunk.x * TileMap.tileWidth)*cg.z;
           let chunkY = ay + (chunk.y * TileMap.tileHeight)*cg.z;
           cg.c.drawImage(chunk.cachedData[l],chunkX,chunkY,chunk.width*width+TileMap.cachedChunkFudge,chunk.height*height+TileMap.cachedChunkFudge);
-          // cg.c.fillStyle = ["#ff0000","#00ff00","#0000ff","#ff00ff"][chunkNum%4];
-          // cg.c.globalAlpha = 0.08;
+          // cg.c.fillStyle = ["#ff0000","#00ff00","#0000ff","#ff00ff","#ffff00"][chunkNum%5];
+          // cg.c.globalAlpha = 0.1;
           // cg.c.fillRect(chunkX,chunkY,chunk.width*TileMap.tileWidth*cg.z,chunk.height*TileMap.tileHeight*cg.z);
+          // cg.c.globalAlpha = 1;
+          // cg.c.fillStyle = "#000000";
+          // cg.c.textAlign = "left";
+          // cg.c.fillText("Chunk: " + chunkNum + " " + chunk.x.toFixed(2) + "," + chunk.y.toFixed(2) + "        " + chunkX.toFixed(2) + "," + chunkY.toFixed(2),chunkX,chunkY+10);
           continue;
         }
         for (let t=0; t<chunk.layers[l].length; t++) {

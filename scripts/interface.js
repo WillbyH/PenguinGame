@@ -17,6 +17,8 @@ cg.createObject({"id":"pauseObject",x:70,y:70})
   },
   down:function(){
     interface.pause = true;
+    cg.objects.interface.controlsTip.graphic.o = 1;
+    cg.objects.interface.controlsTipBackground.graphic.o = 1;
     cg.objects.interface.inventory.graphic.o = 0;
     cg.pause();
   }
@@ -84,6 +86,14 @@ ChoreoGraph.graphicTypes.inventory = new class inventory {
       "mackerel" : "fishMackerelIcon",
       "snow" : "snowIcon"
     }
+    g.itemNames = {
+      "stone" : "Stone",
+      "stick" : "Stick",
+      "anchovy" : "Anchovy",
+      "krill" : "Krill",
+      "mackerel" : "Mackerel",
+      "snow" : "Snow"
+    }
     g.padX = 10;
     g.padY = 10;
     g.circleRadius = 50;
@@ -92,12 +102,25 @@ ChoreoGraph.graphicTypes.inventory = new class inventory {
     g.textY = 1.1;
     g.imageSize = 80;
 
+    g.pickupDisplay = {};
+    g.pickupDisplayTime = 0;
+    g.pickupDisplayDuration = 3000;
+    g.pickupDisplayFadeOutDuration = 200;
+    g.pickupDisplayY = 300;
+    g.pickupDisplayX = 20;
+
     g.add = function(item,amount) {
       if (this.items[item]) {
         this.items[item] += amount;
       } else {
         this.items[item] = amount;
       }
+      if (this.pickupDisplay[item]) {
+        this.pickupDisplay[item] += amount;
+      } else {
+        this.pickupDisplay[item] = amount;
+      }
+      this.pickupDisplayTime = cg.clock;
     }
     g.remove = function(item,amount) {
       if (this.items[item]) {
@@ -106,6 +129,12 @@ ChoreoGraph.graphicTypes.inventory = new class inventory {
           delete this.items[item];
         }
       }
+      if (this.pickupDisplay[item]) {
+        this.pickupDisplay[item] -= amount;
+      } else {
+        this.pickupDisplay[item] = -amount;
+      }
+      this.pickupDisplayTime = cg.clock;
     }
   }
   draw(g,cg) {
@@ -128,12 +157,56 @@ ChoreoGraph.graphicTypes.inventory = new class inventory {
       cg.c.fillText(g.items[itemId],-g.padX-(column*g.spacing)-(g.circleRadius*2)*g.textX,(g.circleRadius*2)*g.textY+g.padY);
       column++;
     }
+    if (g.pickupDisplayTime + g.pickupDisplayDuration > cg.clock) {
+      if (g.pickupDisplayTime + g.pickupDisplayDuration - g.pickupDisplayFadeOutDuration < cg.clock) {
+        cg.c.globalAlpha = 1-((cg.clock - g.pickupDisplayTime - g.pickupDisplayDuration + g.pickupDisplayFadeOutDuration)/g.pickupDisplayFadeOutDuration);
+      }
+      let row = 0;
+      for (let itemId in g.pickupDisplay) {
+        if (g.pickupDisplay[itemId]==0) { continue; }
+        cg.c.fillStyle = "#88bbeb";
+        cg.c.font = "40px Lilita";
+        cg.c.textAlign = "right";
+        let plusMinus = "";
+        if (g.pickupDisplay[itemId] > 0) {
+          plusMinus = "+";
+        }
+        cg.c.fillText(g.itemNames[itemId],-g.padX-75-g.pickupDisplayX,g.pickupDisplayY+row*40);
+        cg.c.fillText(plusMinus + g.pickupDisplay[itemId],-g.padX-g.pickupDisplayX,g.pickupDisplayY+row*40);
+        row++;
+      }
+    } else {
+      g.pickupDisplay = {};
+    }
   }
 }
 
 cg.createImage({id:"playUnhoveredImage",file:"play.png",crop:[0*ssg,0*ssg,8*ssg,4*ssg]});
 cg.createImage({id:"playHoveredImage",file:"play.png",crop:[0*ssg,4*ssg,8*ssg,4*ssg]});
 cg.createImage({id:"titleImage",file:"title.png"})
+
+for (let i=0;i<7;i++) {
+  let splashImage = cg.createImage({id:"titleSplashImage"+i,file:"playSplash.png",crop:[0,ssg*4*i,ssg*8,ssg*4]});
+  cg.createGraphic({type:"image",id:"titleSplash"+i,image:splashImage,width:ssg*8,height:ssg*4,imageSmoothingEnabled:false,CGSpace:false,ox:600,oy:200,osx:4,osy:4,canvasSpaceXAnchor:0,canvasSpaceYAnchor:0.5});
+}
+cg.createGraphicAnimation({
+  frames:["titleSplash1","titleSplash2","titleSplash3","titleSplash4","titleSplash5","titleSplash6","titleSplash6"],
+  GraphicKey:["playSplash","graphic"],
+  id:"titleSplash",
+  frameRate:8,
+  endCallback:function(object,Animator) {
+    Animator.anim = cg.animations.titleSplashWait;
+    Animator.reset();
+  }
+});
+cg.createGraphic({"type":"rectangle",CGSpace:false,canvasSpaceXAnchor:0,canvasSpaceYAnchor:0.5,ox:600,oy:200,colour:"#3c536d",id:"titleSplashWaitGraphic",o:0});
+
+cg.createGraphicAnimation({
+  frames:["titleSplashWaitGraphic"],
+  GraphicKey:["playSplash","graphic"],
+  id:"titleSplashWait",
+  frameRate:0.1
+});
 
 ChoreoGraph.graphicTypes.titleScreen = new class titleScreen {
   setup(g,graphicInit,cg) {
@@ -142,11 +215,22 @@ ChoreoGraph.graphicTypes.titleScreen = new class titleScreen {
   draw(g,cg) {
     cg.c.fillStyle = "#fafafa";
     // cg.c.fillRect(600-700/2,200-150/2,700,150);
-    let scaler = 4;
+    let scaler = 5;
     cg.c.imageSmoothingEnabled = false;
     let playImage = g.playHover ? cg.images.playHoveredImage : cg.images.playUnhoveredImage;
     cg.drawImage(playImage,600,200,8*ssg*scaler,4*ssg*scaler,0,false);
-    cg.drawImage(cg.images.titleImage,600,-200,8*ssg*scaler,4*ssg*scaler,0,false);
+    cg.drawImage(cg.images.titleImage,600,-200,10*ssg*scaler,5*ssg*scaler,0,false);
+  }
+}
+ChoreoGraph.graphicTypes.controlsTip = new class controlsTip {
+  setup(g,graphicInit,cg) {
+    g.playHover = false;
+  }
+  draw(g,cg) {
+    cg.c.fillStyle = "#fafafa";
+    cg.c.font = "30px Lilita";
+    cg.c.textAlign = "right";
+    cg.c.fillText("WASD - Move      M - Open Map      P - Pause / See Achievements",-20,-20);
   }
 }
 ChoreoGraph.graphicTypes.achievements = new class achievements {
@@ -158,7 +242,8 @@ ChoreoGraph.graphicTypes.achievements = new class achievements {
         completed : false,
         icon : "penguinIcon",
         goal : 1,
-        current : 0
+        current : 0,
+        hidden : false
       },
       "fishing" : {
         name : "Two Fish",
@@ -166,7 +251,8 @@ ChoreoGraph.graphicTypes.achievements = new class achievements {
         completed : false,
         icon : "fishingIcon",
         goal : 2,
-        current : 0
+        current : 0,
+        hidden : false
       },
       "hoarder" : {
         name : "Hoarder",
@@ -174,7 +260,8 @@ ChoreoGraph.graphicTypes.achievements = new class achievements {
         completed : false,
         icon : "stoneIcon",
         goal : 0, // Gets set by other code
-        current : 0
+        current : 0,
+        hidden : false
       },
       "snowman" : {
         name : "Do you wanna",
@@ -182,7 +269,8 @@ ChoreoGraph.graphicTypes.achievements = new class achievements {
         completed : false,
         icon : "snowmanIcon",
         goal : 1,
-        current : 0
+        current : 0,
+        hidden : false
       },
       "seal" : {
         name : "Seal Encounter",
@@ -190,7 +278,17 @@ ChoreoGraph.graphicTypes.achievements = new class achievements {
         completed : false,
         icon : "sealIcon",
         goal : 1,
-        current : 0
+        current : 0,
+        hidden : false
+      },
+      "finish" : {
+        name : "Finish the Game",
+        description : "Get all achievements",
+        completed : false,
+        icon : "stareIcon",
+        goal : 5,
+        current : 0,
+        hidden : true
       }
     };
     g.padX = 10;
@@ -220,6 +318,9 @@ ChoreoGraph.graphicTypes.achievements = new class achievements {
       this.goals[goal].current = Math.min(this.goals[goal].current+amount,this.goals[goal].goal);
       if (this.goals[goal].current >= this.goals[goal].goal && this.goals[goal].completed == false) {
         this.goals[goal].completed = true;
+        cg.createEvent({duration:(g.goalPopupInDuration+g.goalPopupStayDuration+g.goalPopupStayDuration+1000)/1000,end:function(){
+          cg.graphics.achievements.progress("finish",1);
+        }});
         g.currentGoalPopup = goal;
         g.goalPopupTime = cg.clock;
       }
@@ -230,6 +331,7 @@ ChoreoGraph.graphicTypes.achievements = new class achievements {
       let row = 0;
       for (let goalId in g.goals) {
         let goal = g.goals[goalId];
+        if (goal.hidden&&goal.completed==false) { continue; }
         cg.c.fillStyle = "#eeeeee";
         cg.c.globalAlpha = 0.8;
         cg.c.beginPath();
@@ -320,11 +422,14 @@ ChoreoGraph.graphicTypes.achievements = new class achievements {
     }
   }
 }
-
 cg.createObject({"id":"interface",x:0,y:0})
 .attach("Graphic",{keyOverride:"pauseMenu",level:4,graphic:cg.createGraphic({type:"pauseMenu",id:"pauseMenu",CGSpace:false,canvasSpaceXAnchor:0.5,canvasSpaceYAnchor:0.5}),master:true})
 .attach("Graphic",{keyOverride:"inventory",level:4,graphic:cg.createGraphic({type:"inventory",id:"inventory",CGSpace:false,canvasSpaceXAnchor:1,canvasSpaceYAnchor:0}),master:true})
 .attach("Graphic",{keyOverride:"titleScreen",level:4,graphic:cg.createGraphic({type:"titleScreen",id:"titleScreen",CGSpace:false,canvasSpaceXAnchor:0,canvasSpaceYAnchor:0.5,o:0}),master:true})
+.attach("Graphic",{keyOverride:"controlsTipBackground",level:4,graphic:cg.createGraphic({type:"pointText",id:"controlsTip",CGSpace:false,canvasSpaceXAnchor:1,canvasSpaceYAnchor:1,textAlign:"right",lineWidth:4,fill:false,colour:"#c8c8c8",font:"30px Lilita",text:"WASD - Move      M - Open Map      P - Pause / See Achievements",ox:-20,oy:-20,o:0}),master:true})
+.attach("Graphic",{keyOverride:"controlsTip",level:4,graphic:cg.createGraphic({type:"pointText",id:"controlsTip",CGSpace:false,canvasSpaceXAnchor:1,canvasSpaceYAnchor:1,textAlign:"right",colour:"#fafafa",font:"30px Lilita",text:"WASD - Move      M - Open Map      P - Pause / See Achievements",ox:-20,oy:-20}),master:true})
+.attach("Graphic",{keyOverride:"playSplash",level:4,graphic:cg.graphics.titleSplashWaitGraphic,master:true})
+.attach("Animator",{keyOverride:"playSplashAnimator",anim:cg.animations.titleSplashWait,master:true})
 .attach("Graphic",{keyOverride:"achievements",level:4,graphic:cg.createGraphic({type:"achievements",id:"achievements",CGSpace:false,canvasSpaceXAnchor:1,canvasSpaceYAnchor:0}),master:true})
 .attach("Button",{oy:-75,button:cg.createButton({type:"rect",id:"resumeButton",width:600,height:150,check:"pauseMenu",CGSpace:false,canvasSpaceXAnchor:0.5,canvasSpaceYAnchor:0.5,
   enter:function(){
@@ -335,6 +440,8 @@ cg.createObject({"id":"interface",x:0,y:0})
   },
   down:function(){
     interface.pause = false;
+    cg.objects.interface.controlsTip.graphic.o = 0;
+    cg.objects.interface.controlsTipBackground.graphic.o = 0;
     cg.objects.interface.inventory.graphic.o = 1;
     cg.unpause();
   }
@@ -348,6 +455,8 @@ cg.createObject({"id":"interface",x:0,y:0})
   },
   down:function(){
     onTitleScreen = true;
+    cg.objects.interface.controlsTip.graphic.colour = "#fafafa";
+    cg.objects.interface.controlsTipBackground.graphic.o = 0;
     cg.objects.interface.titleScreen.graphic.o = 1;
     interface.pause = false;
     cg.unpause();
@@ -364,14 +473,22 @@ cg.createObject({"id":"interface",x:0,y:0})
     ChoreoGraph.AudioController.masterVolume = !ChoreoGraph.AudioController.masterVolume;
   }
 }),master:false})
-.attach("Button",{oy:200,ox:600,button:cg.createButton({type:"rect",id:"play",width:700,height:150,check:"titleScreen",CGSpace:false,canvasSpaceXAnchor:0,canvasSpaceYAnchor:0.5,
+.attach("Button",{oy:210,ox:600,button:cg.createButton({type:"rect",id:"play",width:450,height:220,check:"titleScreen",CGSpace:false,canvasSpaceXAnchor:0,canvasSpaceYAnchor:0.5,
   enter:function(){
     cg.objects.interface.titleScreen.graphic.playHover = true;
+    if (cg.objects.interface.playSplashAnimator.anim.id == "titleSplashWait") {
+      cg.objects.interface.playSplashAnimator.anim = cg.animations.titleSplash;
+      cg.objects.interface.playSplashAnimator.reset();
+    }
   },
   exit:function(){
     cg.objects.interface.titleScreen.graphic.playHover = false;
   },
   down:function(){
+    cg.objects.interface.playSplashAnimator.anim = cg.animations.titleSplashWait;
+    cg.objects.interface.playSplashAnimator.reset();
+    cg.objects.interface.controlsTip.graphic.colour = "#333333";
+    cg.objects.interface.controlsTip.graphic.o = 0;
     Player.nextDharntzTime = cg.clock + 10000 + Math.random()*20000;
     onTitleScreen = false;
     cg.objects.interface.titleScreen.graphic.o = 0;

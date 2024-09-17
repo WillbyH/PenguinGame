@@ -42,6 +42,10 @@ ChoreoGraph.plugin({
           "font": "30px Arial"
         }
       }
+      this.camera = {
+        "active" : false,
+        "colour" : "#76f562"
+      }
     }
     drawAnimations(cg) {
       cg.c.font = this.animations.style.font;
@@ -287,6 +291,33 @@ ChoreoGraph.plugin({
         }
       }
     }
+    drawCamera(cg) {
+      let centreX = cg.getTransX(cg.camera.x);
+      let centreY = cg.getTransY(cg.camera.y);
+      let cameraWidth = cg.cw;
+      let cameraHeight = cg.ch;
+      let scaler = 1;
+      if (cg.camera.scaleMode=="pixels") {
+        scaler = cg.camera.z*cg.camera.scale;
+      } else if (cg.camera.scaleMode=="maximum") {
+        if (cg.cw*(cg.camera.WHRatio)>cg.ch*(1-cg.camera.WHRatio)) {
+          scaler = cg.camera.z*(cg.cw/cg.camera.maximumSize);
+        } else {
+          scaler = cg.camera.z*(cg.ch/cg.camera.maximumSize);
+        }
+      }
+      cameraWidth = cameraWidth/scaler*cg.z;
+      cameraHeight = cameraHeight/scaler*cg.z;
+      cg.c.strokeStyle = this.camera.colour;
+      cg.c.lineWidth = 1.5;
+      cg.c.strokeRect(centreX-cameraWidth/2,centreY-cameraHeight/2,cameraWidth,cameraHeight);
+      cg.c.beginPath();
+      cg.c.moveTo(centreX-cameraWidth/2,centreY-cameraHeight/2);
+      cg.c.lineTo(centreX+cameraWidth/2,centreY+cameraHeight/2);
+      cg.c.moveTo(centreX-cameraWidth/2,centreY+cameraHeight/2);
+      cg.c.lineTo(centreX+cameraWidth/2,centreY-cameraHeight/2);
+      cg.c.stroke();
+    }
   },
   instanceExternalLoops: [function VisualisationLoop(cg) {
     cg.c.save();
@@ -296,6 +327,7 @@ ChoreoGraph.plugin({
     if (ChoreoGraph.plugins.Visualisation.v.blocks.active) { ChoreoGraph.plugins.Visualisation.v.drawBlocks(cg); }
     cg.c.restore();
     if (ChoreoGraph.plugins.Visualisation.v.buttons.active) { ChoreoGraph.plugins.Visualisation.v.drawButtons(cg); }
+    if (ChoreoGraph.plugins.Visualisation.v.camera.active) { ChoreoGraph.plugins.Visualisation.v.drawCamera(cg); }
   }]
 });
 // Willby - 2024

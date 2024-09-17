@@ -19,6 +19,12 @@ const ChoreoGraph = new class ChoreoGraphEngine {
       setup(graphic,graphicInit,cg) {
         if (graphicInit.image==undefined) { console.error("Image not defined in image graphic"); return; }
         graphic.image = graphicInit.image;
+        if (graphic.image.width==undefined||graphic.image.height==undefined) {
+          graphic.image.onLoad = function() {
+            graphic.width = graphic.image.width;
+            graphic.height = graphic.image.height;
+          }
+        }
         graphic.width = graphic.image.width;
         graphic.height = graphic.image.height;
       }
@@ -225,7 +231,7 @@ const ChoreoGraph = new class ChoreoGraphEngine {
       scaleMode : "pixels",
       // pixels - for maintaining pixel ratios
       scale : 1,
-      // maximum - for maintaining the maximum zoom level
+      // maximum - for dynamic aspect ratios and screen resolutions
       maximumSize : 500, // The amount of units to be the maximum
       WHRatio : 0.5 // Width:Height Ratio
     }
@@ -703,6 +709,8 @@ const ChoreoGraph = new class ChoreoGraphEngine {
     ready = false;
     loadAttempts = 0;
 
+    onLoad = null;
+
     constructor(imageInit,cg) {
       if (imageInit.crop!=undefined) { this.unsetCrop = false; }
   
@@ -731,6 +739,7 @@ const ChoreoGraph = new class ChoreoGraphEngine {
           if (image.height==undefined) { image.height = image.crop[3]*image.scale[1]; }
   
           image.ready = true;
+          if (image.onLoad!=null) { image.onLoad(image); }
         }
         document.body.appendChild(this.image);
       } else if (this.image==null) {
@@ -751,6 +760,7 @@ const ChoreoGraph = new class ChoreoGraphEngine {
           }
   
           this.ready = true;
+          if (this.onLoad!=null) { this.onLoad(this); }
         }
   
         this.image.onerror = () => { // Reload the image if it fails
@@ -1512,6 +1522,8 @@ const ChoreoGraph = new class ChoreoGraphEngine {
         y : 0
       }
 
+      active = true; // If true, this camera will set the instance camera values
+
       constructor(componentInit, object) {
         this.target = {
           x : object.Transform.x + this.offset.x,
@@ -1533,8 +1545,10 @@ const ChoreoGraph = new class ChoreoGraphEngine {
           if (distance>this.jumpDistance) {
             this.position.x = this.target.x;
             this.position.y = this.target.y;
-            object.ChoreoGraph.camera.x = this.position.x;
-            object.ChoreoGraph.camera.y = this.position.y;
+            if (this.active) {
+              object.ChoreoGraph.camera.x = this.position.x;
+              object.ChoreoGraph.camera.y = this.position.y;
+            }
             return;
           }
         }
@@ -1543,8 +1557,10 @@ const ChoreoGraph = new class ChoreoGraphEngine {
         this.target.y = object.Transform.y+object.Transform.oy+this.offset.y;
         this.position.x = this.target.x+(this.position.x-this.target.x)*frameSmooth;
         this.position.y = this.target.y+(this.position.y-this.target.y)*frameSmooth;
-        object.ChoreoGraph.camera.x = this.position.x;
-        object.ChoreoGraph.camera.y = this.position.y;
+        if (this.active) {
+          object.ChoreoGraph.camera.x = this.position.x;
+          object.ChoreoGraph.camera.y = this.position.y;
+        }
       }
     },
     Button: class Button {

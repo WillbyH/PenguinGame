@@ -453,7 +453,7 @@ ChoreoGraph.plugin({
           }
         }
         let colliderNumber = 0;
-        let colliderGroupName = "wall";
+        let colliderGroupName = TileMap.id;
         while (pool.length>0) {
           biggestArea = 0;
           biggestPool = [];

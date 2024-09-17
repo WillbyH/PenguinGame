@@ -22,12 +22,11 @@
 ?>
 <script src="<?php echo $cglocation?>choreograph.js" type="text/javascript"></script>
 <script src="<?php echo $cglocation?>audio.js" type="text/javascript"></script>
-<script src="<?php echo $cglocation?>visualisation.js" type="text/javascript"></script>
+<?php if (file_exists("cglocation.txt")) { echo '<script src="' . $cglocation . 'visualisation.js" type="text/javascript"></script>'; } ?>
 <?php if (file_exists("cglocation.txt")) { echo '<script src="' . $cglocation . 'develop.js" type="text/javascript"></script>'; } ?>
 <script src="<?php echo $cglocation?>tilemaps.js" type="text/javascript"></script>
 <script src="<?php echo $cglocation?>tiledconnector.js" type="text/javascript"></script>
 <script src="<?php echo $cglocation?>physics.js" type="text/javascript"></script>
-<script src="<?php echo $cglocation?>lighting.js" type="text/javascript"></script>
 <script src="scripts/setup.js" type="text/javascript"></script>
 <script src="scripts/player.js" type="text/javascript"></script>
 <script src="scripts/npc.js" type="text/javascript"></script>

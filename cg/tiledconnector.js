@@ -6,11 +6,15 @@ ChoreoGraph.plugin({
   version: "1.0",
   tilesetNames: {},
   instanceConnect: function(cg) {
-    cg.importTileSet = async function(dataUrl,callback) {
+    cg.importTileSetFromFile = async function(dataUrl,callback) {
       let cg = this;
       let response = await fetch(dataUrl);
       let data = await response.json();
-      ChoreoGraph.plugins.TiledConnector.tilesetNames[dataUrl.split("/").pop()] = data.name;
+      cg.importTileSet(data,dataUrl.split("/").pop(),callback);
+    }
+    cg.importTileSet = function(data,filename,callback=null) {
+      let cg = this;
+      ChoreoGraph.plugins.TiledConnector.tilesetNames[filename] = data.name;
       let imageId;
       if ("properties" in data) {
         imageId = data.properties.find(p=>p.name=="cgimage");
@@ -48,10 +52,12 @@ ChoreoGraph.plugin({
       }
     }
 
-    cg.importTileMap = async function(dataUrl,callback) {
+    cg.importTileMapFromFile = async function(dataUrl,callback) {
       let response = await fetch(dataUrl);
       let data = await response.json();
-
+      this.importTileMap(data,callback);
+    }
+    cg.importTileMap = function(data,callback=null) {
       let ChunkTemplate = class Chunk {
         constructor(init) {
           this.x = 0;
