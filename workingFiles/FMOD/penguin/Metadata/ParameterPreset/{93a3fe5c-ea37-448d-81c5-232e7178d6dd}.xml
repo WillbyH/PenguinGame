@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.02.00">
+	<object class="ParameterPreset" id="{93a3fe5c-ea37-448d-81c5-232e7178d6dd}">
+		<property name="name">
+			<value>zoomed</value>
+		</property>
+		<relationship name="folder">
+			<destination>{13417234-6ee0-46a0-8d57-ba0eeab87fc1}</destination>
+		</relationship>
+		<relationship name="parameter">
+			<destination>{367182a8-6c6a-4997-9c0c-56ea925f96c2}</destination>
+		</relationship>
+	</object>
+	<object class="GameParameter" id="{367182a8-6c6a-4997-9c0c-56ea925f96c2}">
+		<property name="initialValue">
+			<value>0</value>
+		</property>
+		<property name="seekSpeed">
+			<value>0.69999998807907104</value>
+		</property>
+		<property name="seekSpeedDescending">
+			<value>0.65999996662139893</value>
+		</property>
+		<property name="seekSpeedAsymmetric">
+			<value>true</value>
+		</property>
+	</object>
+</objects>

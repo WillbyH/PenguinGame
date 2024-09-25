@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.02.00">
+	<object class="AudioFile" id="{644ce02c-3738-4920-8f1d-04e64d1b2447}">
+		<property name="assetPath">
+			<value>colony.mp3</value>
+		</property>
+		<property name="isStreaming">
+			<value>true</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>16</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>92.159999999999997</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{34c1f2f9-0e4e-4aae-8b38-e160491146b5}</destination>
+		</relationship>
+	</object>
+</objects>

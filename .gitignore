@@ -1,1 +1,7 @@
 cglocation.txt
+
+# FMOD Project
+audio/FMODBanks
+workingFiles/FMOD/penguin/.cache/**
+workingFiles/FMOD/penguin/.unsaved/**
+workingFiles/FMOD/penguin/.user/**

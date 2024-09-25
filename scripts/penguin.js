@@ -1,3 +1,38 @@
+ChoreoGraph.FMODConnector.logging = false;
+ChoreoGraph.FMODConnector.baseBankPath = "audio/FMODBanks/";
+ChoreoGraph.FMODConnector.registerBank("MasterStrings","","Master.strings.bank");
+ChoreoGraph.FMODConnector.registerBank("Master","","Master.bank");
+ChoreoGraph.FMODConnector.registerBank("Penguins","","Penguins.bank");
+let FMODSheet;
+ChoreoGraph.FMODConnector.onInit = function() {
+  FMODSheet = ChoreoGraph.FMODConnector.createEventInstance("event:/TheSheet",true);
+}
+ChoreoGraph.FMODConnector.setUp();
+
+cg.createEvent({duration:1,end:function(){
+  let range = 200;
+  let maxPenguins = 15;
+
+  let count = 0;
+  for (let npc of npcs) {
+    let npcX = npc.Transform.x;
+    let npcY = npc.Transform.y;
+    let playerX = Player.Transform.x;
+    let playerY = Player.Transform.y;
+    let distance = Math.sqrt((npcX-playerX)**2+(npcY-playerY)**2);
+    if (distance<range) {
+      count++;
+    }
+  }
+
+  let amount = (Math.min(count,maxPenguins))/(maxPenguins);
+  // console.log(amount,count)
+  FMODSheet.setParameterByName("penguins",amount,false);
+},loop:true});
+
+ChoreoGraph.AudioController.createSound("placeSnowman","audio/snowman.mp3");
+ChoreoGraph.AudioController.createSound("swooshOut","audio/swooshOut.mp3");
+ChoreoGraph.AudioController.createSound("swooshIn","audio/swooshIn.mp3");
 cg.createImage({id:"pond",file:"world.png",crop:[0*ssg,0*ssg,2*ssg,2*ssg]});
 cg.createImage({id:"snowHeap",file:"world.png",crop:[0*ssg,2*ssg,2*ssg,2*ssg]});
 cg.createImage({id:"snowman",file:"world.png",crop:[2*ssg,2*ssg,2*ssg,2*ssg]});
@@ -17,6 +52,10 @@ cg.createImage({id:"snowmanIcon",file:"icons.png",crop:[0*ssg,1*ssg,1*ssg,1*ssg]
 cg.createImage({id:"penguinIcon",file:"icons.png",crop:[1*ssg,1*ssg,1*ssg,1*ssg]});
 cg.createImage({id:"sealIcon",file:"icons.png",crop:[2*ssg,1*ssg,1*ssg,1*ssg]});
 cg.createImage({id:"stareIcon",file:"icons.png",crop:[3*ssg,1*ssg,1*ssg,1*ssg]});
+cg.createImage({id:"FMOD",file:"FMOD.svg"});
+cg.createImage({id:"tiled",file:"tiled.png"});
+cg.createImage({id:"ChoreoGraph",file:"cg.png"});
+cg.createImage({id:"aseprite",file:"aseprite.png"});
 
 cg.createImage({id:"cliffsSetImage",file:"cliffs.png"});
 
@@ -104,13 +143,17 @@ cg.settings.callbacks.keyDown = function(key) {
             cg.graphics.thoughtBubble.registerSelection("tug",cg.images[icons[Player.fishingLine.nextFishType]],function(){
               Player.fishingLine.tug();
             },this,"E","e");
+            Player.fishingLine.canMakeSnareNoise = true;
             Player.fishingLine.isLatched = true;
             Player.fishingLine.latchTime = cg.clock;
+            Player.fishingLine.FMODEvent.setParameterByName("stage",1,false);
           } else { // Reel In (fail latch)
             Player.fishingLine.isCast = false;
+            Player.fishingLine.FMODEvent.stop(ChoreoGraph.FMODConnector.FMOD.STUDIO_STOP_ALLOWFADEOUT);
           }
         }
       } else { // Start Cast
+        Player.fishingLine.FMODEvent = ChoreoGraph.FMODConnector.createEventInstance("event:/Fishing",true);
         Player.fishingLine.isCast = true;
         Player.fishingLine.castTime = cg.clock;
         Player.fishingLine.playSplashNext = true;
@@ -168,6 +211,13 @@ const fancyCamera = cg.createObject({"id":"fancyCamera",x:-10,y:-30})
   if (object.targetTargetOut!=object.targetOut&&object.transitionStartTime+object.transitionDuration<cg.clock) {
     object.transitionStartTime = cg.clock;
     object.targetOut = object.targetTargetOut;
+    if (object.targetOut) {
+      FMODSheet.setParameterByName("zoomed",1,false);
+      ChoreoGraph.AudioController.start("swooshOut",0,0,1.4);
+    } else {
+      FMODSheet.setParameterByName("zoomed",0,false);
+      ChoreoGraph.AudioController.start("swooshIn",0,0,1.4);
+    }
   }
   if (object.targetOut) {
     Player.Camera.active = false;
@@ -317,6 +367,8 @@ const decoratives = new class {
     newSnowman.attach("Collider",{collider:cg.createCollider({type:"circle",static:true,radius:11,groups:[0]}),master:true,keyOverride:"PhysicsCollider"})
     .attach("Graphic",{level:1,graphic:cg.createGraphic({"type":"image",image:cg.images.snowman,width:32,height:32,imageSmoothingEnabled:false}),master:true})
     .attach("Animator",{anim:cg.animations["snowmanCreate_"+newSnowman.id]});
+    
+    ChoreoGraph.AudioController.start("placeSnowman",0,0,1);
     return newSnowman;
   }
   createCarrot(x,y) {

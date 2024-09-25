@@ -28,7 +28,9 @@ ChoreoGraph.graphicTypes.pauseMenu = new class pauseMenu {
   setup(graphic,graphicInit,cg) {
     graphic.resumeHover = false;
     graphic.titleHover = false;
-    graphic.toggleAudioHover = false;
+
+    graphic.toggleMuteHover = false;
+    graphic.toggleTouchHover = false;
   }
   draw(g,cg,ax,ay) {
     cg.c.globalAlpha = 0.2;
@@ -73,6 +75,11 @@ ChoreoGraph.graphicTypes.pauseMenu = new class pauseMenu {
     cg.c.font = "60px Lilita";
     cg.c.fillText("Resume",ax,ay-75);
     cg.c.fillText("Return to Title",ax,ay+115);
+
+    if (g.toggleMuteHover) { cg.c.fillStyle = "#88bbeb"; } else { cg.c.fillStyle = "#333333"; }
+    cg.c.fillText(ChoreoGraph.AudioController.masterVolume>0 ? "Mute" : "Unmute",ax-160,ay+300);
+    if (g.toggleTouchHover) { cg.c.fillStyle = "#88bbeb"; } else { cg.c.fillStyle = "#333333"; }
+    cg.c.fillText(Player.allowTouchControls ? "Touch On" : "Touch Off",ax+160,ay+300);
   }
 }
 ChoreoGraph.graphicTypes.inventory = new class inventory {
@@ -211,17 +218,45 @@ cg.createGraphicAnimation({
 ChoreoGraph.graphicTypes.titleScreen = new class titleScreen {
   setup(g,graphicInit,cg) {
     g.playHover = false;
+    g.creditsToggleHover = false;
+    g.showCredits = false;
   }
   draw(g,cg) {
     cg.c.fillStyle = "#fafafa";
     // cg.c.fillRect(600-700/2,200-150/2,700,150);
     let scaler = 5;
     cg.c.imageSmoothingEnabled = false;
-    let playImage = g.playHover ? cg.images.playHoveredImage : cg.images.playUnhoveredImage;
-    cg.drawImage(playImage,600,200,8*ssg*scaler,4*ssg*scaler,0,false);
-    cg.drawImage(cg.images.titleImage,600,-200,10*ssg*scaler,5*ssg*scaler,0,false);
+    let creditsToggleText = "CREDITS";
+    if (g.showCredits) {
+      creditsToggleText = "BACK";
+      cg.c.imageSmoothingEnabled = true;
+      cg.drawImage(cg.images.FMOD,300,250,1004*0.3,264*0.3,0,false);
+      cg.drawImage(cg.images.tiled,960,250,811*0.3,427*0.3,0,false);
+      cg.c.imageSmoothingEnabled = false;
+      cg.drawImage(cg.images.ChoreoGraph,750,250+5,400*0.3,400*0.3,20,false);
+      cg.drawImage(cg.images.aseprite,570,250,400*0.35,400*0.35,0,false);
+      cg.c.font = "50px Lilita";
+      cg.c.textAlign = "center";
+      cg.c.fillText("A game made by Willby",580,-200);
+      cg.c.font = "30px Lilita";
+      cg.c.fillText("Penguin sounds by al.barbosa",580,-100);
+      cg.c.fillText("Wave sounds from Zapspat",580,-50);
+    } else {
+      let playImage = g.playHover ? cg.images.playHoveredImage : cg.images.playUnhoveredImage;
+      cg.drawImage(playImage,600,200,8*ssg*scaler,4*ssg*scaler,0,false);
+      cg.drawImage(cg.images.titleImage,600,-200,10*ssg*scaler,5*ssg*scaler,0,false);
+    }
+
+    if (g.creditsToggleHover) { cg.c.fillStyle = "#88bbeb"; }
+    else { cg.c.fillStyle = "#fafafa"; }
+    cg.c.font = "40px Lilita";
+    cg.c.textAlign = "left";
+    cg.c.fillText(creditsToggleText,100,(cg.ch/2)/cg.settings.canvasSpaceScale-80);
   }
 }
+// Freesound - 150861 150865
+// Zapsplat - https://www.zapsplat.com/music/distant-stormy-ocean-waves-with-surf/
+
 ChoreoGraph.graphicTypes.controlsTip = new class controlsTip {
   setup(g,graphicInit,cg) {
     g.playHover = false;
@@ -321,6 +356,7 @@ ChoreoGraph.graphicTypes.achievements = new class achievements {
         cg.createEvent({duration:(g.goalPopupInDuration+g.goalPopupStayDuration+g.goalPopupStayDuration+1000)/1000,end:function(){
           cg.graphics.achievements.progress("finish",1);
         }});
+        ChoreoGraph.AudioController.start("achievement",0,0,0.4);
         g.currentGoalPopup = goal;
         g.goalPopupTime = cg.clock;
       }
@@ -422,6 +458,7 @@ ChoreoGraph.graphicTypes.achievements = new class achievements {
     }
   }
 }
+
 cg.createObject({"id":"interface",x:0,y:0})
 .attach("Graphic",{keyOverride:"pauseMenu",level:4,graphic:cg.createGraphic({type:"pauseMenu",id:"pauseMenu",CGSpace:false,canvasSpaceXAnchor:0.5,canvasSpaceYAnchor:0.5}),master:true})
 .attach("Graphic",{keyOverride:"inventory",level:4,graphic:cg.createGraphic({type:"inventory",id:"inventory",CGSpace:false,canvasSpaceXAnchor:1,canvasSpaceYAnchor:0}),master:true})
@@ -462,18 +499,30 @@ cg.createObject({"id":"interface",x:0,y:0})
     cg.unpause();
   }
 }),master:false})
-.attach("Button",{oy:300,ox:-200,button:cg.createButton({type:"rect",id:"toggleAudioButton",width:200,height:150,check:"pauseMenu",CGSpace:false,canvasSpaceXAnchor:0.5,canvasSpaceYAnchor:0.5,
+.attach("Button",{oy:300,ox:-160,button:cg.createButton({type:"rect",id:"toggleAudioButton",width:240,height:150,check:"pauseMenu",CGSpace:false,canvasSpaceXAnchor:0.5,canvasSpaceYAnchor:0.5,
   enter:function(){
-    cg.objects.interface.pauseMenu.graphic.toggleAudioHover = true;
+    cg.objects.interface.pauseMenu.graphic.toggleMuteHover = true;
   },
   exit:function(){
-    cg.objects.interface.pauseMenu.graphic.toggleAudioHover = false;
+    cg.objects.interface.pauseMenu.graphic.toggleMuteHover = false;
   },
   down:function(){
     ChoreoGraph.AudioController.masterVolume = !ChoreoGraph.AudioController.masterVolume;
+    ChoreoGraph.FMODConnector.getBus("bus:/").setVolume(ChoreoGraph.AudioController.masterVolume);
   }
 }),master:false})
-.attach("Button",{oy:210,ox:600,button:cg.createButton({type:"rect",id:"play",width:450,height:220,check:"titleScreen",CGSpace:false,canvasSpaceXAnchor:0,canvasSpaceYAnchor:0.5,
+.attach("Button",{oy:300,ox:160,button:cg.createButton({type:"rect",id:"toggleTouchButton",width:240,height:150,check:"pauseMenu",CGSpace:false,canvasSpaceXAnchor:0.5,canvasSpaceYAnchor:0.5,
+  enter:function(){
+    cg.objects.interface.pauseMenu.graphic.toggleTouchHover = true;
+  },
+  exit:function(){
+    cg.objects.interface.pauseMenu.graphic.toggleTouchHover = false;
+  },
+  down:function(){
+    Player.allowTouchControls = !Player.allowTouchControls;
+  }
+}),master:false})
+.attach("Button",{oy:210,ox:600,button:cg.createButton({type:"rect",id:"play",width:450,height:220,check:"titleScreenPlay",CGSpace:false,canvasSpaceXAnchor:0,canvasSpaceYAnchor:0.5,
   enter:function(){
     cg.objects.interface.titleScreen.graphic.playHover = true;
     if (cg.objects.interface.playSplashAnimator.anim.id == "titleSplashWait") {
@@ -498,11 +547,23 @@ cg.createObject({"id":"interface",x:0,y:0})
     cg.objects.interface.inventory.graphic.o = 1;
     fancyCamera.targetTargetOut = false;
   }
+}),master:false})
+.attach("Button",{oy:-95,ox:175,button:cg.createButton({type:"rect",id:"toggleCredits",width:200,height:100,check:"titleScreen",CGSpace:false,canvasSpaceXAnchor:0,canvasSpaceYAnchor:1,
+  enter:function(){
+    cg.objects.interface.titleScreen.graphic.creditsToggleHover = true;
+  },
+  exit:function(){
+    cg.objects.interface.titleScreen.graphic.creditsToggleHover = false;
+  },
+  down:function(){
+    cg.objects.interface.titleScreen.graphic.showCredits = !cg.objects.interface.titleScreen.graphic.showCredits;
+  }
 }),master:false});
 
 cg.settings.callbacks.updateButtonChecks = function(cg) {
   return {
     "titleScreen" : onTitleScreen,
+    "titleScreenPlay" : onTitleScreen&&cg.objects.interface.titleScreen.graphic.showCredits==false,
     "pauseMenu" : interface.pause,
     "gameplay" : cg.paused==false&&onTitleScreen==false
   }

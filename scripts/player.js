@@ -1,11 +1,26 @@
-ChoreoGraph.AudioController.createSound("footstep0","audio/footsteps/0.mp3");
-ChoreoGraph.AudioController.createSound("footstep1","audio/footsteps/1.mp3");
-ChoreoGraph.AudioController.createSound("footstep2","audio/footsteps/2.mp3");
-ChoreoGraph.AudioController.createSound("footstep3","audio/footsteps/3.mp3");
-ChoreoGraph.AudioController.createSound("footstep4","audio/footsteps/4.mp3");
-ChoreoGraph.AudioController.createSound("footstep5","audio/footsteps/5.mp3");
+ChoreoGraph.AudioController.createSound("footstep0","audio/corn footsteps/0.mp3");
+ChoreoGraph.AudioController.createSound("footstep1","audio/corn footsteps/1.mp3");
+ChoreoGraph.AudioController.createSound("footstep2","audio/corn footsteps/2.mp3");
+ChoreoGraph.AudioController.createSound("footstep3","audio/corn footsteps/3.mp3");
+ChoreoGraph.AudioController.createSound("footstep4","audio/corn footsteps/4.mp3");
+ChoreoGraph.AudioController.createSound("footstep5","audio/corn footsteps/5.mp3");
+ChoreoGraph.AudioController.createSound("achievement","audio/achievement.mp3");
 
 ChoreoGraph.AudioController.createSound("music0","audio/music0.mp3",{autoplay:true});
+ChoreoGraph.AudioController.createSound("music1","audio/music1.mp3");
+
+let nextMusicTime = 80000+Math.random()*40000;
+
+cg.createEvent({duration:1,end:function(){
+  if (cg.clock>nextMusicTime) {
+    nextMusicTime = cg.clock + 80000+Math.random()*40000;
+    if (Math.random()>0.5) {
+      ChoreoGraph.AudioController.start("music0",0,0,0.3);
+    } else {
+      ChoreoGraph.AudioController.start("music1",0,0,0.3);
+    }
+  }
+},loop:true});
 
 ChoreoGraph.AudioController.masterVolume = 1;
 
@@ -171,6 +186,8 @@ ChoreoGraph.graphicTypes.fishingLine = new class fishingLine {
     g.castDuration = 1200;
     g.playSplashNext = true;
     g.nextCatch = 0;
+    g.canMakeSnareNoise = true;
+    g.FMODEvent = null;
     
     g.isLatched = false;
     g.latchTime = 0;
@@ -208,12 +225,14 @@ ChoreoGraph.graphicTypes.fishingLine = new class fishingLine {
           if (this.latchState>=this.latchStateSizes.length) {
             cg.graphics.thoughtBubble.unregisterSelection("tug");
             g.caughtTime = cg.clock;
+            Player.fishingLine.FMODEvent.setParameterByName("stage",2,false);
             g.isCaught = true;
           }
         } else {
           cg.graphics.thoughtBubble.unregisterSelection("tug");
           this.reregister();
           this.endCast();
+          Player.fishingLine.FMODEvent.stop(ChoreoGraph.FMODConnector.FMOD.STUDIO_STOP_ALLOWFADEOUT);
         }
       }
     }
@@ -308,9 +327,14 @@ ChoreoGraph.graphicTypes.fishingLine = new class fishingLine {
           if (cg.clock>g.nextCatch) {
             if (g.nextCatch-cg.clock+g.catchInterval<0) {
               g.nextCatch = cg.clock + g.minimumCatchWait + Math.random()*g.randomCatchWait;
+              g.canMakeSnareNoise = true;
             } else {
               cg.c.fillStyle = "#db2c00";
               cg.c.fillRect(ax-0.8+lineShake,ay+25,1.6,0.8);
+              if (g.canMakeSnareNoise) {
+                ChoreoGraph.FMODConnector.createEventInstance("event:/Snare",true);
+                g.canMakeSnareNoise = false;
+              }
             }
           } else {
             cg.c.fillStyle = "#db2c00";
@@ -360,7 +384,7 @@ Player.movement = function() {
     if (ChoreoGraph.Input.keyStates["s"]||ChoreoGraph.Input.keyStates["down"]) { movementVector[1] += 1; }
     if (ChoreoGraph.Input.keyStates["a"]||ChoreoGraph.Input.keyStates["left"]) { movementVector[0] -= 1; }
     if (ChoreoGraph.Input.keyStates["d"]||ChoreoGraph.Input.keyStates["right"]) { movementVector[0] += 1; }
-    if (ChoreoGraph.Input.cursor.hold.any&&Player.allowTouchControls) {
+    if (ChoreoGraph.Input.cursor.hold.any&&Player.allowTouchControls&&fancyCamera.targetOut==false) {
       movementVector[0] = ChoreoGraph.Input.cursor.x - cg.cw/2;
       movementVector[1] = ChoreoGraph.Input.cursor.y - cg.ch/2;
     }
@@ -412,7 +436,9 @@ Player.movement = function() {
     rb.yv = movementVector[1];
     setWalkingAnimations(aimVector,Player);
     if (cg.clock-Player.lastFootstepSound>Player.footstepInterval) {
-      // ChoreoGraph.AudioController.start("footstep"+Math.floor(Math.random()*6),0,0,0.05);
+      if (Math.random()>0.6) {
+        ChoreoGraph.AudioController.start("footstep"+Math.floor(Math.random()*6),0,0,0.08);
+      }
       Player.lastFootstepSound = cg.clock;
     }
   } else {
