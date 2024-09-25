@@ -114,12 +114,14 @@ cg.settings.callbacks.keyDown = function(key) {
     if (interface.pause) {
       interface.pause = false;
       cg.objects.interface.inventory.graphic.o = 1;
+      if (Player.allowTouchControls) { cg.objects.interface.touchControls.graphic.o = 1; }
       cg.objects.interface.controlsTip.graphic.o = 0;
       cg.objects.interface.controlsTipBackground.graphic.o = 0;
       cg.unpause();
     } else {
       interface.pause = true;
       cg.objects.interface.inventory.graphic.o = 0;
+      cg.objects.interface.touchControls.graphic.o = 0;
       cg.objects.interface.controlsTip.graphic.o = 1;
       cg.objects.interface.controlsTipBackground.graphic.o = 1;
       cg.pause();

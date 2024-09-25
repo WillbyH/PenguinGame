@@ -20,6 +20,7 @@ cg.createObject({"id":"pauseObject",x:70,y:70})
     cg.objects.interface.controlsTip.graphic.o = 1;
     cg.objects.interface.controlsTipBackground.graphic.o = 1;
     cg.objects.interface.inventory.graphic.o = 0;
+    cg.objects.interface.touchControls.graphic.o = 0;
     cg.pause();
   }
 }),master:false});
@@ -185,6 +186,38 @@ ChoreoGraph.graphicTypes.inventory = new class inventory {
     } else {
       g.pickupDisplay = {};
     }
+  }
+}
+ChoreoGraph.graphicTypes.touchControls = new class touchControls {
+  setup(g,graphicInit,cg) {
+    g.mapHover = false;
+    g.eInteractHover = false;
+  }
+  draw(g,cg) {
+    cg.c.strokeStyle = "#88bbeb";
+    if (g.mapHover||ChoreoGraph.Input.keyStates.m) { cg.c.fillStyle = "#88bbeb"; } else { cg.c.fillStyle = "#fafafa"; }
+    cg.c.lineWidth = 20;
+    let mapLoc = [-180,-320];
+    let ELoc = [-280,-160];
+    cg.c.beginPath();
+    cg.c.arc(mapLoc[0],mapLoc[1],70,0,Math.PI*2);
+    cg.c.globalAlpha = 0.7;
+    cg.c.fill();
+    cg.c.globalAlpha = 1;
+    cg.c.stroke();
+    if (g.eInteractHover||ChoreoGraph.Input.keyStates.e) { cg.c.fillStyle = "#88bbeb"; } else { cg.c.fillStyle = "#fafafa"; }
+    cg.c.beginPath();
+    cg.c.arc(ELoc[0],ELoc[1],70,0,Math.PI*2);
+    cg.c.globalAlpha = 0.7;
+    cg.c.fill();
+    cg.c.globalAlpha = 1;
+    cg.c.stroke();
+    cg.c.fillStyle = "#333333";
+    cg.c.font = "50px Lilita";
+    cg.c.textAlign = "center";
+    cg.c.textBaseline = "middle";
+    cg.c.fillText("MAP", mapLoc[0],mapLoc[1]+1);
+    cg.c.fillText("E", ELoc[0],ELoc[1]+1);
   }
 }
 
@@ -462,6 +495,7 @@ ChoreoGraph.graphicTypes.achievements = new class achievements {
 cg.createObject({"id":"interface",x:0,y:0})
 .attach("Graphic",{keyOverride:"pauseMenu",level:4,graphic:cg.createGraphic({type:"pauseMenu",id:"pauseMenu",CGSpace:false,canvasSpaceXAnchor:0.5,canvasSpaceYAnchor:0.5}),master:true})
 .attach("Graphic",{keyOverride:"inventory",level:4,graphic:cg.createGraphic({type:"inventory",id:"inventory",CGSpace:false,canvasSpaceXAnchor:1,canvasSpaceYAnchor:0}),master:true})
+.attach("Graphic",{keyOverride:"touchControls",level:4,graphic:cg.createGraphic({type:"touchControls",id:"touchControls",CGSpace:false,canvasSpaceXAnchor:1,canvasSpaceYAnchor:1,o:0}),master:true})
 .attach("Graphic",{keyOverride:"titleScreen",level:4,graphic:cg.createGraphic({type:"titleScreen",id:"titleScreen",CGSpace:false,canvasSpaceXAnchor:0,canvasSpaceYAnchor:0.5,o:0}),master:true})
 .attach("Graphic",{keyOverride:"controlsTipBackground",level:4,graphic:cg.createGraphic({type:"pointText",id:"controlsTip",CGSpace:false,canvasSpaceXAnchor:1,canvasSpaceYAnchor:1,textAlign:"right",lineWidth:4,fill:false,colour:"#c8c8c8",font:"30px Lilita",text:"WASD - Move      M - Open Map      P - Pause / See Achievements",ox:-20,oy:-20,o:0}),master:true})
 .attach("Graphic",{keyOverride:"controlsTip",level:4,graphic:cg.createGraphic({type:"pointText",id:"controlsTip",CGSpace:false,canvasSpaceXAnchor:1,canvasSpaceYAnchor:1,textAlign:"right",colour:"#fafafa",font:"30px Lilita",text:"WASD - Move      M - Open Map      P - Pause / See Achievements",ox:-20,oy:-20}),master:true})
@@ -480,6 +514,7 @@ cg.createObject({"id":"interface",x:0,y:0})
     cg.objects.interface.controlsTip.graphic.o = 0;
     cg.objects.interface.controlsTipBackground.graphic.o = 0;
     cg.objects.interface.inventory.graphic.o = 1;
+    if (Player.allowTouchControls) { cg.objects.interface.touchControls.graphic.o = 1; }
     cg.unpause();
   }
 }),master:false})
@@ -545,6 +580,7 @@ cg.createObject({"id":"interface",x:0,y:0})
     cg.camera.x = Player.Transform.x;
     cg.camera.y = Player.Transform.y;
     cg.objects.interface.inventory.graphic.o = 1;
+    if (Player.allowTouchControls) { cg.objects.interface.touchControls.graphic.o = 1; }
     fancyCamera.targetTargetOut = false;
   }
 }),master:false})
@@ -557,6 +593,28 @@ cg.createObject({"id":"interface",x:0,y:0})
   },
   down:function(){
     cg.objects.interface.titleScreen.graphic.showCredits = !cg.objects.interface.titleScreen.graphic.showCredits;
+  }
+}),master:false})
+.attach("Button",{oy:-320,ox:-180,button:cg.createButton({type:"circle",id:"mapButton",radius:80,check:"gameplay",CGSpace:false,canvasSpaceXAnchor:1,canvasSpaceYAnchor:1,
+  enter:function(){
+    cg.objects.interface.touchControls.graphic.mapHover = true;
+  },
+  exit:function(){
+    cg.objects.interface.touchControls.graphic.mapHover = false;
+  },
+  down:function(){
+    cg.settings.callbacks.keyDown("m");
+  }
+}),master:false})
+.attach("Button",{oy:-160,ox:-280,button:cg.createButton({type:"circle",id:"EInteractButton",radius:80,check:"gameplay",CGSpace:false,canvasSpaceXAnchor:1,canvasSpaceYAnchor:1,
+  enter:function(){
+    cg.objects.interface.touchControls.graphic.eInteractHover = true;
+  },
+  exit:function(){
+    cg.objects.interface.touchControls.graphic.eInteractHover = false;
+  },
+  down:function(){
+    cg.settings.callbacks.keyDown("e");
   }
 }),master:false});
 

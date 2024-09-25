@@ -13,3 +13,4 @@ var cg = ChoreoGraph.instantiate(document.getElementsByTagName("canvas")[0],{
 
 let ssg = 16; // Spritesheet Grid Size
 let showCollectText = false;
+cg.preventSingleTouch = true;

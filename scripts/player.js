@@ -384,7 +384,7 @@ Player.movement = function() {
     if (ChoreoGraph.Input.keyStates["s"]||ChoreoGraph.Input.keyStates["down"]) { movementVector[1] += 1; }
     if (ChoreoGraph.Input.keyStates["a"]||ChoreoGraph.Input.keyStates["left"]) { movementVector[0] -= 1; }
     if (ChoreoGraph.Input.keyStates["d"]||ChoreoGraph.Input.keyStates["right"]) { movementVector[0] += 1; }
-    if (ChoreoGraph.Input.cursor.hold.any&&Player.allowTouchControls&&fancyCamera.targetOut==false) {
+    if (ChoreoGraph.Input.cursor.hold.any&&Player.allowTouchControls&&fancyCamera.targetOut==false&&cg.buttons.EInteractButton.hovered==false&&cg.buttons.mapButton.hovered==false) {
       movementVector[0] = ChoreoGraph.Input.cursor.x - cg.cw/2;
       movementVector[1] = ChoreoGraph.Input.cursor.y - cg.ch/2;
     }
@@ -427,8 +427,8 @@ Player.movement = function() {
       }
     }
   }
-  let aimVector = [movementVector[0],movementVector[1]];
   let magnitude = Math.sqrt(movementVector[0]*movementVector[0]+movementVector[1]*movementVector[1]);
+  let aimVector = [movementVector[0]/magnitude,movementVector[1]/magnitude];
   if (magnitude>0) {
     movementVector[0] = movementVector[0]/magnitude*movementSpeed;
     movementVector[1] = (movementVector[1]/magnitude)*movementSpeed;
