@@ -207,8 +207,10 @@ ChoreoGraph.graphicTypes.fishingLine = new class fishingLine {
     g.latchStateSizes = [0.4,0.2,0.15];
 
     g.pondId = null;
+    g.isFirstSnare = true;
 
     g.nextFishType = "anchovy";
+    g.caughtFishTypes = [];
 
     g.reregister = function() {
       cg.graphics.thoughtBubble.registerSelection(this.pondId,cg.images.fishingIcon,function(){
@@ -242,6 +244,7 @@ ChoreoGraph.graphicTypes.fishingLine = new class fishingLine {
       Player.fishingLine.isLatched = false;
       Player.fishingLine.latchState = 0;
       Player.fishingLine.isCaught = false;
+      Player.fishingLine.isFirstSnare = true;
       cg.graphics.thoughtBubble.unregisterSelection("tug");
     }
   }
@@ -274,8 +277,10 @@ ChoreoGraph.graphicTypes.fishingLine = new class fishingLine {
         if (timeSinceCaught>g.catchDuration) {
           g.endCast();
           cg.graphics.inventory.add(g.nextFishType,1);
-          g.nextFishType = ["anchovy","krill","mackerel"][Math.floor(Math.random()*3)];
-          cg.graphics.achievements.progress("fishing",1);
+          if (g.caughtFishTypes.includes(g.nextFishType)==false) {
+            cg.graphics.achievements.progress("fishing",1);
+          }
+          g.caughtFishTypes.push(g.nextFishType);
           g.reregister();
         }
       } else if (cg.clock-g.castTime<g.castDuration) { // Casting line (its falling)
@@ -325,14 +330,22 @@ ChoreoGraph.graphicTypes.fishingLine = new class fishingLine {
           cg.c.lineTo(ax+lineShake,ay+25);
           cg.c.stroke();
           if (cg.clock>g.nextCatch) {
-            if (g.nextCatch-cg.clock+g.catchInterval<0) {
+            if (g.nextCatch-cg.clock+g.catchInterval<0) { // Gets called once at the end of a catch interval
               g.nextCatch = cg.clock + g.minimumCatchWait + Math.random()*g.randomCatchWait;
               g.canMakeSnareNoise = true;
+              cg.graphics.thoughtBubble.unregisterSelection("grab");
             } else {
               cg.c.fillStyle = "#db2c00";
               cg.c.fillRect(ax-0.8+lineShake,ay+25,1.6,0.8);
-              if (g.canMakeSnareNoise) {
+              if (g.canMakeSnareNoise) { // Calls once at the start of a catch intervale
                 ChoreoGraph.FMODConnector.createEventInstance("event:/Snare",true);
+                if (g.isFirstSnare==false) {
+                  cg.graphics.thoughtBubble.registerSelection("grab",cg.images.fishingIcon,function(){
+                    cg.graphics.thoughtBubble.unregisterSelection("grab");
+                    Player.fishingLine.isFishing = true;
+                  },this,"E","e");
+                }
+                g.isFirstSnare = false;
                 g.canMakeSnareNoise = false;
               }
             }
@@ -522,7 +535,7 @@ function setIdleAnimations(penguin,isPlayer=false) {
   } else if (penguin.nextDharntzTime<cg.clock) {
     if (Player.fishingLine.isFishing==false) {
       newAnimation = penguin.penAnim.dharntz;
-      cg.graphics.achievements.progress("dharntz",1);
+      if (isPlayer) { cg.graphics.achievements.progress("dharntz",1); }
       penguin.Animator.reset();
     }
     penguin.nextDharntzTime = cg.clock + 10000 + Math.random()*20000;

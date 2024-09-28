@@ -1,27 +1,25 @@
 const npcs = [];
 
 function createNPC(x,y) {
+  x += Math.random()/2;
+  y += Math.random()/2;
   let id = "npc_"+npcs.length;
   let newNPC = cg.createObject({id:id,stopNPC:true,x:x,y:y});
   newNPC.penAnim = createPenguinGraphicsPackage();
   let firstFrame = newNPC.penAnim.idleSouth.data[0][1];
   newNPC.attach("Graphic",{level:2,graphic:firstFrame,master:true})
   .attach("Animator",{anim:newNPC.penAnim.idleSouth})
-  .attach("Collider",{collider:cg.createCollider({type:"circle",id:id+"_collider",radius:10,groups:[0],master:true}),oy:5})
-  .attach("Collider",{collider:cg.createCollider({type:"circle",trigger:true,id:id+"_trigger",radius:13,groups:[1],enter:function(collider){
-    if (collider.object.stopNPC) {
-      this.object.atTarget = true;
-      this.object.lastTargetArriveTime = cg.clock;
-    }
-  },master:true}),oy:5})
+  .attach("Collider",{collider:cg.createCollider({type:"circle",id:id+"_collider",radius:10,groups:[0],master:true,collide:function(collider){
+    this.object.atTarget = true;
+    this.object.lastTargetArriveTime = cg.clock;
+  }}),oy:5})
   .attach("RigidBody",{gravity:0,useColliderForPhysics:true})
   .attach("Script",{updateScript:function(object){
     if (object.atTarget) {
       setIdleAnimations(object);
-      if (object.lastTargetArriveTime + 3000 < cg.clock) {
-        object.lastTargetArriveTime = cg.clock;
-        let ox = Math.floor(Math.random()*80)-40;
-        let oy = Math.floor(Math.random()*80)-40;
+      if (object.lastTargetArriveTime + 5000 < cg.clock) {
+        let ox = Math.floor(Math.random()*160)-80;
+        let oy = Math.floor(Math.random()*160)-80;
         let x = object.Transform.x + ox;
         let y = object.Transform.y + oy;
         object.targetLoc = [x,y];
@@ -29,7 +27,7 @@ function createNPC(x,y) {
         object.lastTargetDepartTime = cg.clock;
       }
     } else {
-      if (object.lastTargetDepartTime + 6000 < cg.clock) { // Time out movement
+      if (object.lastTargetDepartTime + 12000 < cg.clock) { // Time out movement
         object.atTarget = true;
         object.lastTargetArriveTime = cg.clock;
       }

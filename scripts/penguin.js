@@ -110,7 +110,7 @@ cg.settings.callbacks.loopAfter = function(cg) {
 }
 
 cg.settings.callbacks.keyDown = function(key) {
-  if (key=="escape"||key=="p"&&!onTitleScreen) {
+  if ((key=="escape"||key=="p"||key=="tab")&&!onTitleScreen) {
     if (interface.pause) {
       interface.pause = false;
       cg.objects.interface.inventory.graphic.o = 1;
@@ -126,7 +126,7 @@ cg.settings.callbacks.keyDown = function(key) {
       cg.objects.interface.controlsTipBackground.graphic.o = 1;
       cg.pause();
     }
-  } else if (key=="m") {
+  } else if (key=="m"||key=="space") {
     fancyCamera.targetTargetOut = !fancyCamera.targetTargetOut;
   }
   if (cg.graphics.thoughtBubble.selected!=null&&cg.graphics.thoughtBubble.selected.hotkey==key) {
@@ -134,40 +134,59 @@ cg.settings.callbacks.keyDown = function(key) {
   }
   if (Player.fishingLine.isFishing) {
     if (key=="e") {
-      if (Player.fishingLine.isCast) {
-        if (!Player.fishingLine.isLatched) {
-          if (Player.fishingLine.nextCatch-cg.clock+Player.fishingLine.catchInterval<Player.fishingLine.catchInterval) { // Latch Fish
-            let icons = {
-              "anchovy" : "fishAnchovyIcon",
-              "krill" : "fishKrillIcon",
-              "mackerel" : "fishMackerelIcon"
-            }
-            cg.graphics.thoughtBubble.registerSelection("tug",cg.images[icons[Player.fishingLine.nextFishType]],function(){
-              Player.fishingLine.tug();
-            },this,"E","e");
-            Player.fishingLine.canMakeSnareNoise = true;
-            Player.fishingLine.isLatched = true;
-            Player.fishingLine.latchTime = cg.clock;
-            Player.fishingLine.FMODEvent.setParameterByName("stage",1,false);
-          } else { // Reel In (fail latch)
-            Player.fishingLine.isCast = false;
-            Player.fishingLine.FMODEvent.stop(ChoreoGraph.FMODConnector.FMOD.STUDIO_STOP_ALLOWFADEOUT);
-          }
+      fishingInteract();
+    }
+  }
+}
+
+function fishingInteract() {
+  if (Player.fishingLine.isCast) {
+    if (!Player.fishingLine.isLatched) {
+      if (Player.fishingLine.nextCatch-cg.clock+Player.fishingLine.catchInterval<Player.fishingLine.catchInterval) { // Latch Fish
+        Player.fishingLine.nextFishType = ["anchovy","krill","mackerel"][Math.floor(Math.random()*3)];
+        let icons = {
+          "anchovy" : "fishAnchovyIcon",
+          "krill" : "fishKrillIcon",
+          "mackerel" : "fishMackerelIcon"
         }
-      } else { // Start Cast
-        Player.fishingLine.FMODEvent = ChoreoGraph.FMODConnector.createEventInstance("event:/Fishing",true);
-        Player.fishingLine.isCast = true;
-        Player.fishingLine.castTime = cg.clock;
-        Player.fishingLine.playSplashNext = true;
-        Player.fishingLine.nextCatch = cg.clock + Player.fishingLine.minimumCatchWait + Math.random()*Player.fishingLine.randomCatchWait;
+        cg.graphics.thoughtBubble.registerSelection("tug",cg.images[icons[Player.fishingLine.nextFishType]],function(){
+          Player.fishingLine.tug();
+        },this,"E","e");
+        Player.fishingLine.canMakeSnareNoise = true;
+        Player.fishingLine.isLatched = true;
+        Player.fishingLine.latchTime = cg.clock;
+        Player.fishingLine.FMODEvent.setParameterByName("stage",1,false);
+      } else { // Reel In (fail latch)
+        Player.fishingLine.reregister();
+        Player.fishingLine.isCast = false;
+        Player.fishingLine.FMODEvent.stop(ChoreoGraph.FMODConnector.FMOD.STUDIO_STOP_ALLOWFADEOUT);
       }
     }
+  } else { // Start Cast
+    Player.fishingLine.FMODEvent = ChoreoGraph.FMODConnector.createEventInstance("event:/Fishing",true);
+    Player.fishingLine.isCast = true;
+    Player.fishingLine.castTime = cg.clock;
+    Player.fishingLine.playSplashNext = true;
+    Player.fishingLine.nextCatch = cg.clock + Player.fishingLine.minimumCatchWait + Math.random()*Player.fishingLine.randomCatchWait;
   }
 }
 
 function moving() { // Activated each frame there is active player input movement
   if (Player.fishingLine.isFishing) {
     Player.fishingLine.endCast();
+    Player.fishingLine.FMODEvent.stop(ChoreoGraph.FMODConnector.FMOD.STUDIO_STOP_ALLOWFADEOUT);
+    cg.graphics.thoughtBubble.registerSelection(Player.fishingLine.pondId,cg.images.fishingIcon,function(){
+      cg.graphics.thoughtBubble.unregisterSelection(Player.fishingLine.pondId);
+      Player.disableUserMovement = true;
+      Player.targetLoc = [
+        cg.colliders[Player.fishingLine.pondId].object.Transform.x,
+        cg.colliders[Player.fishingLine.pondId].object.Transform.y - 23
+      ];
+      Player.targetCallback = function() {
+        fishingInteract();
+        Player.fishingLine.isFishing = true;
+      }
+    },this,"E","e");
   }
 }
 
@@ -297,9 +316,7 @@ const decoratives = new class {
               this.meta.object.Transform.y - 23
             ];
             Player.targetCallback = function() {
-              cg.graphics.thoughtBubble.registerSelection("cast",cg.images.fishingIcon,function(){
-                cg.graphics.thoughtBubble.unregisterSelection("cast");
-              },this,"E","e");
+              fishingInteract();
               Player.fishingLine.isFishing = true;
             }
           },this,"E","e");
@@ -485,7 +502,7 @@ decoratives.createSealPopup(92.5,-105.5,52.5,-67);
 decoratives.createSealPopup(-687,431,-670,346);
 decoratives.createSealPopup(475,-520.5,443.5,-490);
 decoratives.createSealPopup(-572,-470,-516,-503.5);
-decoratives.createSealPopup(196.5,522.5,198,450.5);
+decoratives.createSealPopup(168,516.5,189,454.5);
 
 // decoratives.createStone(0,50);
 // decoratives.createStone(-150,55);

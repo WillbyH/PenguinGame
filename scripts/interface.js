@@ -306,7 +306,7 @@ ChoreoGraph.graphicTypes.achievements = new class achievements {
     g.goals = {
       "dharntz" : {
         name : "Dance Club",
-        description : "Wait for the penguin to start dancing",
+        description : "Wait for yourself to start dancing",
         completed : false,
         icon : "penguinIcon",
         goal : 1,
@@ -315,7 +315,7 @@ ChoreoGraph.graphicTypes.achievements = new class achievements {
       },
       "fishing" : {
         name : "Two Fish",
-        description : "Catch two fish",
+        description : "Catch two types of fish",
         completed : false,
         icon : "fishingIcon",
         goal : 2,
@@ -497,8 +497,8 @@ cg.createObject({"id":"interface",x:0,y:0})
 .attach("Graphic",{keyOverride:"inventory",level:4,graphic:cg.createGraphic({type:"inventory",id:"inventory",CGSpace:false,canvasSpaceXAnchor:1,canvasSpaceYAnchor:0}),master:true})
 .attach("Graphic",{keyOverride:"touchControls",level:4,graphic:cg.createGraphic({type:"touchControls",id:"touchControls",CGSpace:false,canvasSpaceXAnchor:1,canvasSpaceYAnchor:1,o:0}),master:true})
 .attach("Graphic",{keyOverride:"titleScreen",level:4,graphic:cg.createGraphic({type:"titleScreen",id:"titleScreen",CGSpace:false,canvasSpaceXAnchor:0,canvasSpaceYAnchor:0.5,o:0}),master:true})
-.attach("Graphic",{keyOverride:"controlsTipBackground",level:4,graphic:cg.createGraphic({type:"pointText",id:"controlsTip",CGSpace:false,canvasSpaceXAnchor:1,canvasSpaceYAnchor:1,textAlign:"right",lineWidth:4,fill:false,colour:"#c8c8c8",font:"30px Lilita",text:"WASD - Move      M - Open Map      P - Pause / See Achievements",ox:-20,oy:-20,o:0}),master:true})
-.attach("Graphic",{keyOverride:"controlsTip",level:4,graphic:cg.createGraphic({type:"pointText",id:"controlsTip",CGSpace:false,canvasSpaceXAnchor:1,canvasSpaceYAnchor:1,textAlign:"right",colour:"#fafafa",font:"30px Lilita",text:"WASD - Move      M - Open Map      P - Pause / See Achievements",ox:-20,oy:-20}),master:true})
+.attach("Graphic",{keyOverride:"controlsTipBackground",level:4,graphic:cg.createGraphic({type:"pointText",id:"controlsTip",CGSpace:false,canvasSpaceXAnchor:1,canvasSpaceYAnchor:1,textAlign:"right",lineWidth:4,fill:false,colour:"#c8c8c8",font:"30px Lilita",text:"WASD - Move      M - Open Map      P - Achievements and Settings Menu",ox:-20,oy:-20,o:0}),master:true})
+.attach("Graphic",{keyOverride:"controlsTip",level:4,graphic:cg.createGraphic({type:"pointText",id:"controlsTip",CGSpace:false,canvasSpaceXAnchor:1,canvasSpaceYAnchor:1,textAlign:"right",colour:"#fafafa",font:"30px Lilita",text:"WASD - Move      M - Open Map      P - Achievements and Settings Menu",ox:-20,oy:-20}),master:true})
 .attach("Graphic",{keyOverride:"playSplash",level:4,graphic:cg.graphics.titleSplashWaitGraphic,master:true})
 .attach("Animator",{keyOverride:"playSplashAnimator",anim:cg.animations.titleSplashWait,master:true})
 .attach("Graphic",{keyOverride:"achievements",level:4,graphic:cg.createGraphic({type:"achievements",id:"achievements",CGSpace:false,canvasSpaceXAnchor:1,canvasSpaceYAnchor:0}),master:true})
@@ -595,7 +595,7 @@ cg.createObject({"id":"interface",x:0,y:0})
     cg.objects.interface.titleScreen.graphic.showCredits = !cg.objects.interface.titleScreen.graphic.showCredits;
   }
 }),master:false})
-.attach("Button",{oy:-320,ox:-180,button:cg.createButton({type:"circle",id:"mapButton",radius:80,check:"gameplay",CGSpace:false,canvasSpaceXAnchor:1,canvasSpaceYAnchor:1,
+.attach("Button",{oy:-320,ox:-180,button:cg.createButton({type:"circle",id:"mapButton",radius:80,check:"gameplayTouch",CGSpace:false,canvasSpaceXAnchor:1,canvasSpaceYAnchor:1,
   enter:function(){
     cg.objects.interface.touchControls.graphic.mapHover = true;
   },
@@ -606,7 +606,7 @@ cg.createObject({"id":"interface",x:0,y:0})
     cg.settings.callbacks.keyDown("m");
   }
 }),master:false})
-.attach("Button",{oy:-160,ox:-280,button:cg.createButton({type:"circle",id:"EInteractButton",radius:80,check:"gameplay",CGSpace:false,canvasSpaceXAnchor:1,canvasSpaceYAnchor:1,
+.attach("Button",{oy:-160,ox:-280,button:cg.createButton({type:"circle",id:"EInteractButton",radius:80,check:"gameplayTouch",CGSpace:false,canvasSpaceXAnchor:1,canvasSpaceYAnchor:1,
   enter:function(){
     cg.objects.interface.touchControls.graphic.eInteractHover = true;
   },
@@ -623,6 +623,7 @@ cg.settings.callbacks.updateButtonChecks = function(cg) {
     "titleScreen" : onTitleScreen,
     "titleScreenPlay" : onTitleScreen&&cg.objects.interface.titleScreen.graphic.showCredits==false,
     "pauseMenu" : interface.pause,
-    "gameplay" : cg.paused==false&&onTitleScreen==false
+    "gameplay" : cg.paused==false&&onTitleScreen==false,
+    "gameplayTouch" : cg.paused==false&&onTitleScreen==false&&Player.allowTouchControls
   }
 }

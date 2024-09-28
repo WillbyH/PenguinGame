@@ -45,11 +45,11 @@
             "scaleInEditor": 1
         },
         "D:/Programs/XAMPP/htdocs/PenguinGame/data/titleMap.json": {
-            "scale": 3,
+            "scale": 2,
             "selectedLayer": 2,
             "viewCenter": {
-                "x": 226.99999999999997,
-                "y": 167
+                "x": 232,
+                "y": 163.5
             }
         }
     },
