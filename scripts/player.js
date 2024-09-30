@@ -204,13 +204,22 @@ ChoreoGraph.graphicTypes.fishingLine = new class fishingLine {
     // g.randomCatchWait = 1000;
 
     g.latchState = 0;
-    g.latchStateSizes = [0.4,0.2,0.15];
+    g.latchStateSizes = {
+      "anchovy" : [0.6,0.4,0.3],
+      "krill" : [0.4,0.3,0.2],
+      "mackerel" : [0.3,0.2,0.1]
+    }
 
     g.pondId = null;
     g.isFirstSnare = true;
 
     g.nextFishType = "anchovy";
     g.caughtFishTypes = [];
+    g.fishCaught = 0;
+
+    g.LCGx = 643;
+    g.LCGa = 75;
+    g.LCGm = 65537;
 
     g.reregister = function() {
       cg.graphics.thoughtBubble.registerSelection(this.pondId,cg.images.fishingIcon,function(){
@@ -222,12 +231,13 @@ ChoreoGraph.graphicTypes.fishingLine = new class fishingLine {
     g.tug = function() {
       if (this.isLatched) {
         let latchMarkerHeight = Math.sin((cg.clock-g.latchTime)/500);
-        if (Math.abs(latchMarkerHeight)<this.latchStateSizes[this.latchState]) {
+        if (Math.abs(latchMarkerHeight)<this.latchStateSizes[g.nextFishType][this.latchState]) {
           this.latchState++;
-          if (this.latchState>=this.latchStateSizes.length) {
+          if (this.latchState>=this.latchStateSizes[g.nextFishType].length) {
             cg.graphics.thoughtBubble.unregisterSelection("tug");
             g.caughtTime = cg.clock;
             Player.fishingLine.FMODEvent.setParameterByName("stage",2,false);
+            cg.graphics.inventory.add(g.nextFishType,1);
             g.isCaught = true;
           }
         } else {
@@ -276,7 +286,6 @@ ChoreoGraph.graphicTypes.fishingLine = new class fishingLine {
         cg.drawImage(cg.images[icons[Player.fishingLine.nextFishType]],ax,ay-3+catchHeight,cg.z*3,cg.z*3,0,false);
         if (timeSinceCaught>g.catchDuration) {
           g.endCast();
-          cg.graphics.inventory.add(g.nextFishType,1);
           if (g.caughtFishTypes.includes(g.nextFishType)==false) {
             cg.graphics.achievements.progress("fishing",1);
           }
@@ -311,7 +320,7 @@ ChoreoGraph.graphicTypes.fishingLine = new class fishingLine {
           cg.c.stroke();
 
           cg.c.fillStyle = "#2bc663";
-          let latchingHeight = g.latchStateSizes[g.latchState]*20;
+          let latchingHeight = g.latchStateSizes[g.nextFishType][g.latchState]*20;
           cg.c.fillRect(ax+8,ay-15+10-(latchingHeight/2),6,latchingHeight)
           cg.c.fillStyle = "#f03f96"
           let markerHeight = 0.5;
@@ -384,7 +393,7 @@ Player.attach("Graphic",{level:2,graphic:Player.penAnim.idleSouth.data[0][1],mas
 .attach("RigidBody",{gravity:0,useColliderForPhysics:true});
 
 Player.fishingLine = Player.fishingLineGraphic.graphic;
-Player.allowTouchControls = false;
+Player.allowTouchControls = true;
 
 
 Player.movement = function() {

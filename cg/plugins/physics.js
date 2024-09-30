@@ -76,6 +76,8 @@ ChoreoGraph.plugin({
       comparison.collidedOn = ChoreoGraph.run;
       if (!comparison.collisions.includes(collider)) { comparison.collisions.push(collider); }
       if (resolve) { // Physics
+        if (collider.collide!=null) { collider.collide(comparison); }
+        if (comparison.collide!=null) { comparison.collide(collider); }
         if (forwardVector[0]!=0) { collider.resolutionVector[0] = forwardVector[0]; }
         if (forwardVector[1]!=0) { collider.resolutionVector[1] = forwardVector[1]; }
         if (backwardVector[0]!=0) { comparison.resolutionVector[0] = backwardVector[0]; }
@@ -423,6 +425,7 @@ ChoreoGraph.plugin({
 
         newCollider.enter = null;
         newCollider.exit = null;
+        newCollider.collide = null;
 
         newCollider.ChoreoGraph = this;
         for (let key in colliderInit) {
@@ -696,6 +699,7 @@ ChoreoGraph.ObjectComponents.RigidBody = class RigidBody {
   gravity = 9.8;
   xv = 0; // X Velocity
   yv = 0; // Y Velocity
+  bounce = false;
   collider = null;
   colliderComponent = null;
   useColliderForPhysics = false;
@@ -737,14 +741,24 @@ ChoreoGraph.ObjectComponents.RigidBody = class RigidBody {
       if (this.useColliderForPhysics&&this.collider.collided) {
         if (this.collider.resolutionVector[0]!=0) {
           dx = this.collider.resolutionVector[0];
-          if (dx>0&&this.xv<0) { this.xv = 0; }
-          else if (dx<0&&this.xv>0) { this.xv = 0; }
+          if (this.bounce) {
+            if (dx>0&&this.xv<0) { this.xv *= -1; }
+            else if (dx<0&&this.xv>0) { this.xv *= -1; }
+          } else {
+            if (dx>0&&this.xv<0) { this.xv = 0; }
+            else if (dx<0&&this.xv>0) { this.xv = 0; }
+          }
           object.Transform.x += dx;
         }
         if (this.collider.resolutionVector[1]!=0) {
           dy = this.collider.resolutionVector[1];
-          if (dy>0&&this.yv<0) { this.yv = 0; }
-          else if (dy<0&&this.yv>0) { this.yv = 0; }
+          if (this.bounce) {
+            if (dy>0&&this.yv<0) { this.yv *= -1; }
+            else if (dy<0&&this.yv>0) { this.yv *= -1; }
+          } else {
+            if (dy>0&&this.yv<0) { this.yv = 0; }
+            else if (dy<0&&this.yv>0) { this.yv = 0; }
+          }
           object.Transform.y += dy;
         }
       }

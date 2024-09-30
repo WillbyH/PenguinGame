@@ -197,8 +197,8 @@ ChoreoGraph.graphicTypes.touchControls = new class touchControls {
     cg.c.strokeStyle = "#88bbeb";
     if (g.mapHover||ChoreoGraph.Input.keyStates.m) { cg.c.fillStyle = "#88bbeb"; } else { cg.c.fillStyle = "#fafafa"; }
     cg.c.lineWidth = 20;
-    let mapLoc = [-180,-320];
-    let ELoc = [-280,-160];
+    let mapLoc = [180,-320];
+    let ELoc = [280,-160];
     cg.c.beginPath();
     cg.c.arc(mapLoc[0],mapLoc[1],70,0,Math.PI*2);
     cg.c.globalAlpha = 0.7;
@@ -495,7 +495,7 @@ ChoreoGraph.graphicTypes.achievements = new class achievements {
 cg.createObject({"id":"interface",x:0,y:0})
 .attach("Graphic",{keyOverride:"pauseMenu",level:4,graphic:cg.createGraphic({type:"pauseMenu",id:"pauseMenu",CGSpace:false,canvasSpaceXAnchor:0.5,canvasSpaceYAnchor:0.5}),master:true})
 .attach("Graphic",{keyOverride:"inventory",level:4,graphic:cg.createGraphic({type:"inventory",id:"inventory",CGSpace:false,canvasSpaceXAnchor:1,canvasSpaceYAnchor:0}),master:true})
-.attach("Graphic",{keyOverride:"touchControls",level:4,graphic:cg.createGraphic({type:"touchControls",id:"touchControls",CGSpace:false,canvasSpaceXAnchor:1,canvasSpaceYAnchor:1,o:0}),master:true})
+.attach("Graphic",{keyOverride:"touchControls",level:4,graphic:cg.createGraphic({type:"touchControls",id:"touchControls",CGSpace:false,canvasSpaceXAnchor:0,canvasSpaceYAnchor:1,o:0}),master:true})
 .attach("Graphic",{keyOverride:"titleScreen",level:4,graphic:cg.createGraphic({type:"titleScreen",id:"titleScreen",CGSpace:false,canvasSpaceXAnchor:0,canvasSpaceYAnchor:0.5,o:0}),master:true})
 .attach("Graphic",{keyOverride:"controlsTipBackground",level:4,graphic:cg.createGraphic({type:"pointText",id:"controlsTip",CGSpace:false,canvasSpaceXAnchor:1,canvasSpaceYAnchor:1,textAlign:"right",lineWidth:4,fill:false,colour:"#c8c8c8",font:"30px Lilita",text:"WASD - Move      M - Open Map      P - Achievements and Settings Menu",ox:-20,oy:-20,o:0}),master:true})
 .attach("Graphic",{keyOverride:"controlsTip",level:4,graphic:cg.createGraphic({type:"pointText",id:"controlsTip",CGSpace:false,canvasSpaceXAnchor:1,canvasSpaceYAnchor:1,textAlign:"right",colour:"#fafafa",font:"30px Lilita",text:"WASD - Move      M - Open Map      P - Achievements and Settings Menu",ox:-20,oy:-20}),master:true})
@@ -595,7 +595,7 @@ cg.createObject({"id":"interface",x:0,y:0})
     cg.objects.interface.titleScreen.graphic.showCredits = !cg.objects.interface.titleScreen.graphic.showCredits;
   }
 }),master:false})
-.attach("Button",{oy:-320,ox:-180,button:cg.createButton({type:"circle",id:"mapButton",radius:80,check:"gameplayTouch",CGSpace:false,canvasSpaceXAnchor:1,canvasSpaceYAnchor:1,
+.attach("Button",{ox:180,oy:-320,button:cg.createButton({type:"circle",id:"mapButton",radius:80,check:"gameplayTouch",CGSpace:false,canvasSpaceXAnchor:0,canvasSpaceYAnchor:1,
   enter:function(){
     cg.objects.interface.touchControls.graphic.mapHover = true;
   },
@@ -606,7 +606,7 @@ cg.createObject({"id":"interface",x:0,y:0})
     cg.settings.callbacks.keyDown("m");
   }
 }),master:false})
-.attach("Button",{oy:-160,ox:-280,button:cg.createButton({type:"circle",id:"EInteractButton",radius:80,check:"gameplayTouch",CGSpace:false,canvasSpaceXAnchor:1,canvasSpaceYAnchor:1,
+.attach("Button",{ox:280,oy:-160,button:cg.createButton({type:"circle",id:"EInteractButton",radius:80,check:"gameplayTouch",CGSpace:false,canvasSpaceXAnchor:0,canvasSpaceYAnchor:1,
   enter:function(){
     cg.objects.interface.touchControls.graphic.eInteractHover = true;
   },

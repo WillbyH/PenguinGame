@@ -209,9 +209,6 @@ ChoreoGraph.plugin({
       }
     }
     drawObjectAnnotation(cg) {
-      let h = cg.ch;
-      let w = cg.cw;
-      let z = cg.z;
       cg.c.font = this.objectAnnotation.style.font;
       cg.c.fillStyle = this.objectAnnotation.style.textColour;
       cg.c.textAlign = "center";
@@ -226,9 +223,6 @@ ChoreoGraph.plugin({
       }
     }
     drawBlocks(cg) {
-      let h = cg.ch;
-      let w = cg.cw;
-      let z = cg.z;
       cg.c.strokeStyle = this.blocks.colours[0];
       let last_x_y = [0,0];
       let colourtoggle = true;

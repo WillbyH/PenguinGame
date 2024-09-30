@@ -27,7 +27,7 @@ cg.createEvent({duration:1,end:function(){
 
   let amount = (Math.min(count,maxPenguins))/(maxPenguins);
   // console.log(amount,count)
-  FMODSheet.setParameterByName("penguins",amount,false);
+  FMODSheet?.setParameterByName("penguins",amount,false);
 },loop:true});
 
 ChoreoGraph.AudioController.createSound("placeSnowman","audio/snowman.mp3");
@@ -140,10 +140,12 @@ cg.settings.callbacks.keyDown = function(key) {
 }
 
 function fishingInteract() {
+  Player.nextDharntzTime = cg.clock + 10000 + Math.random()*20000;
   if (Player.fishingLine.isCast) {
     if (!Player.fishingLine.isLatched) {
       if (Player.fishingLine.nextCatch-cg.clock+Player.fishingLine.catchInterval<Player.fishingLine.catchInterval) { // Latch Fish
-        Player.fishingLine.nextFishType = ["anchovy","krill","mackerel"][Math.floor(Math.random()*3)];
+        Player.fishingLine.LCGx = (Player.fishingLine.LCGa * Player.fishingLine.LCGx) % Player.fishingLine.LCGm;
+        Player.fishingLine.nextFishType = ["anchovy","krill","mackerel"][Player.fishingLine.LCGx%3];
         let icons = {
           "anchovy" : "fishAnchovyIcon",
           "krill" : "fishKrillIcon",

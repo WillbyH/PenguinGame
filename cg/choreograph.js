@@ -20,9 +20,15 @@ const ChoreoGraph = new class ChoreoGraphEngine {
         if (graphicInit.image==undefined) { console.error("Image not defined in image graphic"); return; }
         graphic.image = graphicInit.image;
         if (graphic.image.width==undefined||graphic.image.height==undefined) {
-          graphic.image.onLoad = function() {
-            graphic.width = graphic.image.width;
-            graphic.height = graphic.image.height;
+          if (graphic.image.graphicsAwaitingImageLoad==undefined) { graphic.image.graphicsAwaitingImageLoad = []; }
+          graphic.image.graphicsAwaitingImageLoad.push(graphic);
+          graphic.image.onLoad = function(image) {
+            for (let g=0; g<image.graphicsAwaitingImageLoad.length; g++) {
+              let graphic = image.graphicsAwaitingImageLoad[g];
+              if (graphic.width==undefined) { graphic.width = image.width; }
+              if (graphic.height==undefined) { graphic.height = image.height; }
+            }
+            delete image.graphicsAwaitingImageLoad;
           }
         }
         graphic.width = graphic.image.width;
@@ -294,11 +300,6 @@ const ChoreoGraph = new class ChoreoGraphEngine {
     }
     sequenceController(cg) { // Process each sequence tracker each frame, process callbacks and culling
       if (cg.paused) { return; }
-      if (cg.timeSinceLastFrame>cg.settings.inactiveTime) {
-        for (let evnum = 0; evnum < cg.sequenceTrackers.length; evnum++) {
-          cg.sequenceTrackers[evnum].ent += cg.timeSinceLastFrame;
-        }
-      }
       for (let efnum = 0; efnum < cg.sequenceTrackers.length; efnum++) {
         let sequenceTracker = cg.sequenceTrackers[efnum];
         if (cg.clock>sequenceTracker.ent&&sequenceTracker.part<=sequenceTracker.sequence.data.length-1) {
@@ -315,13 +316,6 @@ const ChoreoGraph = new class ChoreoGraphEngine {
     }
     eventController(cg) { // Process each event each frame, process callbacks, culling and looping
       if (cg.paused) { return; }
-      if (cg.timeSinceLastFrame>cg.settings.inactiveTime) {
-        for (let id in cg.events) {
-          let event = cg.events[id];
-          event.stt += cg.timeSinceLastFrame;
-          event.ent += cg.timeSinceLastFrame;
-        }
-      }
       for (let id in cg.events) {
         let event = cg.events[id];
         if (event.ent<cg.clock) {
@@ -458,7 +452,8 @@ const ChoreoGraph = new class ChoreoGraphEngine {
     }
     drawGraphic(graphic) {
       if (graphic.o+graphic.oo==0) { return; }
-      let start = performance.now();
+      let start;
+      if (graphic.averageDrawDuration==undefined) { start = performance.now(); }
       this.c.save();
       this.c.imageSmoothingEnabled = graphic.imageSmoothingEnabled;
       this.c.globalAlpha = graphic.o+graphic.oo;
@@ -477,14 +472,15 @@ const ChoreoGraph = new class ChoreoGraphEngine {
         ChoreoGraph.graphicTypes[graphic.type].draw(graphic,this,graphic.ax+graphic.oax,graphic.ay+graphic.oay);
       } else { console.warn("Unknown graphic type " + graphic.type) }
       this.c.restore();
-      let timeTaken = performance.now()-start;
-      if (graphic.totalTimeTaken==undefined) { graphic.totalTimeTaken = 0; graphic.totalDraws = 0; }
-      graphic.totalTimeTaken += timeTaken;
-      graphic.totalDraws++;
-      if (graphic.timeTaken==undefined&&ChoreoGraph.run>400) {
-        let averageTime = graphic.totalTimeTaken/graphic.totalDraws;
-        // console.info(averageTime+"ms",graphic.id,graphic.type,graphic.totalDraws);
-        graphic.timeTaken = averageTime;
+      if (graphic.averageDrawDuration==undefined) {
+        let timeTaken = performance.now()-start;
+        if (graphic.totalDrawDuration==undefined) { graphic.totalDrawDuration = 0; graphic.totalDrawCount = 0; }
+        graphic.totalDrawDuration += timeTaken;
+        graphic.totalDrawCount++;
+        if (graphic.averageDrawDuration==undefined&&ChoreoGraph.run>400) {
+          let averageTime = graphic.totalDrawDuration/graphic.totalDrawCount;
+          graphic.averageDrawDuration = averageTime;
+        }
       }
     }
     drawImage(image, xloc, yloc, width=image.width, height=image.height, rotation=0, CGSpace=true, context) {
