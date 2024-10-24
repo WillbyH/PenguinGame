@@ -268,6 +268,7 @@ ChoreoGraph.graphicTypes.titleScreen = new class titleScreen {
       cg.c.imageSmoothingEnabled = false;
       cg.drawImage(cg.images.ChoreoGraph,750,250+5,400*0.3,400*0.3,20,false);
       cg.drawImage(cg.images.aseprite,570,250,400*0.35,400*0.35,0,false);
+      cg.drawImage(cg.images.penguinfoundation,575,70,311*0.8,160*0.8,0,false);
       cg.c.font = "50px Lilita";
       cg.c.textAlign = "center";
       cg.c.fillText("A game made by Willby",580,-200);
