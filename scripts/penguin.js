@@ -56,6 +56,7 @@ cg.createImage({id:"FMOD",file:"FMOD.svg"});
 cg.createImage({id:"tiled",file:"tiled.png"});
 cg.createImage({id:"ChoreoGraph",file:"cg.png"});
 cg.createImage({id:"aseprite",file:"aseprite.png"});
+cg.createImage({id:"penguinfoundation",file:"pf.svg"});
 
 cg.createImage({id:"cliffsSetImage",file:"cliffs.png"});
 
