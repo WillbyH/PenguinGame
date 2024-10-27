@@ -340,6 +340,7 @@ const decoratives = new class {
         if (collider.object.id=="Player") {
           cg.graphics.thoughtBubble.registerSelection(this.id,cg.images.snowIcon,function(){
             cg.graphics.inventory.add("snow",1);
+            ChoreoGraph.AudioController.start("footstep"+Math.floor(Math.random()*6),0,0,0.1,1.5,[]);
             cg.graphics.achievements.progress("hoarder",1);
             this.meta.object.amountLeft--;
             if (this.meta.object.amountLeft<=0) {
@@ -431,6 +432,8 @@ const decoratives = new class {
           cg.graphics.thoughtBubble.registerSelection(this.id,cg.images.stoneIcon,function(){
             cg.graphics.thoughtBubble.unregisterSelection(this.id);
             cg.graphics.inventory.add("stone",1);
+            let reverb = ChoreoGraph.AudioController.createEffectNode("reverb",{duration:5,decay:1000});
+            ChoreoGraph.AudioController.start("stone"+Math.floor(Math.random()*5),0,0,1,undefined,[reverb]);
             cg.graphics.achievements.progress("hoarder",1);
             this.meta.object.delete = true;
           },this,"E","e");
@@ -455,6 +458,8 @@ const decoratives = new class {
           cg.graphics.thoughtBubble.registerSelection(this.id,cg.images.stickIcon,function(){
             cg.graphics.thoughtBubble.unregisterSelection(this.id);
             cg.graphics.inventory.add("stick",1);
+            let reverb = ChoreoGraph.AudioController.createEffectNode("reverb",{duration:5,decay:1000});
+            ChoreoGraph.AudioController.start("stick"+Math.floor(Math.random()*6),0,0,1,1,[reverb]);
             cg.graphics.achievements.progress("hoarder",1);
             this.meta.object.delete = true;
           },this,"E","e");
@@ -481,6 +486,7 @@ const decoratives = new class {
         if (collider.object.id=="Player"&&this.object.state==0&&this.object.changeTime+10000<cg.clock&&Math.random()>0.5) {
           this.object.Animator.anim = cg.animations.sealUp;
           this.object.Animator.reset();
+          ChoreoGraph.FMODConnector.createEventInstance("event:/Seal",true);
           this.object.state = 1;
           this.object.changeTime = cg.clock;
         }
@@ -550,33 +556,35 @@ if (ChoreoGraph.Develop!=undefined) {
 let tileMapsLoaded = 0;
 let cliffsMap;
 let titleMap;
-cg.importTileSetFromFile("data/cliffsSet.json",function(){
-  cliffsMap = cg.createGraphic({type:"tileMap",y:16*20});
-  cg.importTileMapFromFile("data/cliffsMap.json",function(TileMap) {
-    TileMap.cache = true;
-    cliffsMap.tileMap = TileMap;
-    cliffsMap.layersToDraw = [0,1];
-    TileMap.tileWidth = 16;
-    TileMap.tileHeight = 16;
-    TileMap.dontRound = true;
-    TileMap.cachedChunkFudge = 1;
-    cg.createCollidersFromTileMap(TileMap,cliffsMap.x,cliffsMap.y,2);
-    tileMapsLoaded += 1;
+cg.images.cliffsSetImage.onLoad = function() {
+  cg.importTileSetFromFile("data/cliffsSet.json",function(){
+    cliffsMap = cg.createGraphic({type:"tileMap",y:16*20});
+    cg.importTileMapFromFile("data/cliffsMap.json",function(TileMap) {
+      TileMap.cache = true;
+      cliffsMap.tileMap = TileMap;
+      cliffsMap.layersToDraw = [0,1];
+      TileMap.tileWidth = 16;
+      TileMap.tileHeight = 16;
+      TileMap.dontRound = true;
+      TileMap.cachedChunkFudge = 1;
+      cg.createCollidersFromTileMap(TileMap,cliffsMap.x,cliffsMap.y,2);
+      tileMapsLoaded += 1;
+    });
+    
+    titleMap = cg.createGraphic({type:"tileMap",x:2500});
+    cg.importTileMapFromFile("data/titleMap.json",function(TileMap) {
+      TileMap.cache = true;
+      titleMap.tileMap = TileMap;
+      titleMap.layersToDraw = [0,1];
+      TileMap.tileWidth = 16;
+      TileMap.tileHeight = 16;
+      TileMap.dontRound = true;
+      TileMap.cachedChunkFudge = 1;
+      cg.createCollidersFromTileMap(TileMap,titleMap.x,titleMap.y,2);
+      tileMapsLoaded += 1;
+    });
   });
-  
-  titleMap = cg.createGraphic({type:"tileMap",x:2500});
-  cg.importTileMapFromFile("data/titleMap.json",function(TileMap) {
-    TileMap.cache = true;
-    titleMap.tileMap = TileMap;
-    titleMap.layersToDraw = [0,1];
-    TileMap.tileWidth = 16;
-    TileMap.tileHeight = 16;
-    TileMap.dontRound = true;
-    TileMap.cachedChunkFudge = 1;
-    cg.createCollidersFromTileMap(TileMap,titleMap.x,titleMap.y,2);
-    tileMapsLoaded += 1;
-  });
-});
+}
 
 
 cg.settings.callbacks.loadingLoop = function(cg,loadedImages) {

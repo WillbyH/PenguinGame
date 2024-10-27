@@ -6,21 +6,51 @@ ChoreoGraph.AudioController.createSound("footstep4","audio/corn footsteps/4.mp3"
 ChoreoGraph.AudioController.createSound("footstep5","audio/corn footsteps/5.mp3");
 ChoreoGraph.AudioController.createSound("achievement","audio/achievement.mp3");
 
+ChoreoGraph.AudioController.createSound("stone0","audio/stones/0.mp3");
+ChoreoGraph.AudioController.createSound("stone1","audio/stones/1.mp3");
+ChoreoGraph.AudioController.createSound("stone2","audio/stones/2.mp3");
+ChoreoGraph.AudioController.createSound("stone3","audio/stones/3.mp3");
+ChoreoGraph.AudioController.createSound("stone4","audio/stones/4.mp3");
+
+ChoreoGraph.AudioController.createSound("stick0","audio/sticks/0.mp3");
+ChoreoGraph.AudioController.createSound("stick1","audio/sticks/1.mp3");
+ChoreoGraph.AudioController.createSound("stick2","audio/sticks/2.mp3");
+ChoreoGraph.AudioController.createSound("stick3","audio/sticks/3.mp3");
+ChoreoGraph.AudioController.createSound("stick4","audio/sticks/4.mp3");
+ChoreoGraph.AudioController.createSound("stick5","audio/sticks/5.mp3");
+
 ChoreoGraph.AudioController.createSound("music0","audio/music0.mp3",{autoplay:true});
 ChoreoGraph.AudioController.createSound("music1","audio/music1.mp3");
+ChoreoGraph.AudioController.createSound("music2","audio/music2.mp3");
 
 let nextMusicTime = 80000+Math.random()*40000;
+let nextMusic = {
+  LCGx : 643,
+  LCGa : 75,
+  LCGm : 65537
+}
+function pickNextMusic() {
+  nextMusic.LCGx = (nextMusic.LCGa*nextMusic.LCGx)%nextMusic.LCGm;
+  return nextMusic.LCGx % 3;
+}
+pickNextMusic();
 
 cg.createEvent({duration:1,end:function(){
   if (cg.clock>nextMusicTime) {
     nextMusicTime = cg.clock + 80000+Math.random()*40000;
-    if (Math.random()>0.5) {
-      ChoreoGraph.AudioController.start("music0",0,0,0.3);
-    } else {
-      ChoreoGraph.AudioController.start("music1",0,0,0.3);
+    let next = pickNextMusic();
+    if (next==0) {
+      ChoreoGraph.AudioController.start("music0",0,0,0.4);
+      console.log("music0");
+    } else if (next==1) {
+      ChoreoGraph.AudioController.start("music1",0,0,0.5);
+      console.log("music1");
+    } else if (next==2){
+      ChoreoGraph.AudioController.start("music2",0,0,0.6);
+      console.log("music2");
     }
   }
-},loop:true});
+},loop:true,id:"musicEvent"});
 
 ChoreoGraph.AudioController.masterVolume = 1;
 
