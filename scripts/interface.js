@@ -1,6 +1,7 @@
 const interface = {
   pause: false
 }
+window.interface = interface;
 
 cg.createObject({"id":"pauseObject",x:70,y:70})
 .attach("Graphic",{level:2,graphic:cg.createGraphic({"type":"rectangle",ox:0,height:80,width:80,fill:true,colour:"#fafafa",CGSpace:false}),keyOverride:"background",master:true})
@@ -32,8 +33,12 @@ ChoreoGraph.graphicTypes.pauseMenu = new class pauseMenu {
 
     graphic.toggleMuteHover = false;
     graphic.toggleTouchHover = false;
+
+    graphic.introMode = true;
   }
   draw(g,cg,ax,ay) {
+    Player.nextDharntzTime = cg.clock + 10000 + Math.random()*20000;
+
     cg.c.globalAlpha = 0.2;
     let scale = cg.settings.canvasSpaceScale;
     cg.c.fillStyle = "#000000";
@@ -71,10 +76,18 @@ ChoreoGraph.graphicTypes.pauseMenu = new class pauseMenu {
     cg.c.font = "100px Lilita";
     cg.c.fillStyle = "#333333";
     cg.c.textAlign = "center";
-    cg.c.fillText("PAUSED",ax,ay-225);
+    if (g.introMode) {
+      cg.c.fillText("WELCOME",ax,ay-225);
+    } else {
+      cg.c.fillText("PAUSED",ax,ay-225);
+    }
     cg.c.textBaseline = "middle";
     cg.c.font = "60px Lilita";
-    cg.c.fillText("Resume",ax,ay-75);
+    if (g.introMode) {
+      cg.c.fillText("Begin",ax,ay-75);
+    } else {
+      cg.c.fillText("Resume",ax,ay-75);
+    }
     cg.c.fillText("Return to Title",ax,ay+115);
 
     if (g.toggleMuteHover) { cg.c.fillStyle = "#88bbeb"; } else { cg.c.fillStyle = "#333333"; }
@@ -397,7 +410,7 @@ ChoreoGraph.graphicTypes.achievements = new class achievements {
     }
   }
   draw(g,cg) {
-    if (cg.paused) {
+    if (cg.paused||(cg.objects.interface.pauseMenu.graphic.introMode&&window.interface.pause)) {
       let row = 0;
       for (let goalId in g.goals) {
         let goal = g.goals[goalId];
@@ -516,6 +529,7 @@ cg.createObject({"id":"interface",x:0,y:0})
     cg.objects.interface.controlsTipBackground.graphic.o = 0;
     cg.objects.interface.inventory.graphic.o = 1;
     if (Player.allowTouchControls) { cg.objects.interface.touchControls.graphic.o = 1; }
+    cg.objects.interface.pauseMenu.graphic.introMode = false;
     cg.unpause();
   }
 }),master:false})
@@ -572,8 +586,6 @@ cg.createObject({"id":"interface",x:0,y:0})
   down:function(){
     cg.objects.interface.playSplashAnimator.anim = cg.animations.titleSplashWait;
     cg.objects.interface.playSplashAnimator.reset();
-    cg.objects.interface.controlsTip.graphic.colour = "#333333";
-    cg.objects.interface.controlsTip.graphic.o = 0;
     Player.nextDharntzTime = cg.clock + 10000 + Math.random()*20000;
     onTitleScreen = false;
     cg.objects.interface.titleScreen.graphic.o = 0;
@@ -583,6 +595,12 @@ cg.createObject({"id":"interface",x:0,y:0})
     cg.objects.interface.inventory.graphic.o = 1;
     if (Player.allowTouchControls) { cg.objects.interface.touchControls.graphic.o = 1; }
     fancyCamera.targetTargetOut = false;
+
+    interface.pause = true;
+    cg.objects.interface.controlsTip.graphic.o = 1;
+    cg.objects.interface.controlsTipBackground.graphic.o = 1;
+    cg.objects.interface.inventory.graphic.o = 0;
+    cg.objects.interface.touchControls.graphic.o = 0;
   }
 }),master:false})
 .attach("Button",{oy:-95,ox:175,button:cg.createButton({type:"rect",id:"toggleCredits",width:200,height:100,check:"titleScreen",CGSpace:false,canvasSpaceXAnchor:0,canvasSpaceYAnchor:1,

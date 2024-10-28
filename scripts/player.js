@@ -41,13 +41,10 @@ cg.createEvent({duration:1,end:function(){
     let next = pickNextMusic();
     if (next==0) {
       ChoreoGraph.AudioController.start("music0",0,0,0.4);
-      console.log("music0");
     } else if (next==1) {
       ChoreoGraph.AudioController.start("music1",0,0,0.5);
-      console.log("music1");
     } else if (next==2){
       ChoreoGraph.AudioController.start("music2",0,0,0.6);
-      console.log("music2");
     }
   }
 },loop:true,id:"musicEvent"});
@@ -436,7 +433,7 @@ Player.movement = function() {
     if (ChoreoGraph.Input.keyStates["s"]||ChoreoGraph.Input.keyStates["down"]) { movementVector[1] += 1; }
     if (ChoreoGraph.Input.keyStates["a"]||ChoreoGraph.Input.keyStates["left"]) { movementVector[0] -= 1; }
     if (ChoreoGraph.Input.keyStates["d"]||ChoreoGraph.Input.keyStates["right"]) { movementVector[0] += 1; }
-    if (ChoreoGraph.Input.cursor.hold.any&&Player.allowTouchControls&&fancyCamera.targetOut==false&&cg.buttons.EInteractButton.hovered==false&&cg.buttons.mapButton.hovered==false) {
+    if (ChoreoGraph.Input.cursor.hold.any&&Player.allowTouchControls&&fancyCamera.targetOut==false&&cg.buttons.EInteractButton.hovered==false&&cg.buttons.mapButton.hovered==false&&interface.pause==false) {
       movementVector[0] = ChoreoGraph.Input.cursor.x - cg.cw/2;
       movementVector[1] = ChoreoGraph.Input.cursor.y - cg.ch/2;
     }
