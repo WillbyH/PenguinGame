@@ -589,6 +589,8 @@ cg.createObject({"id":"interface",x:0,y:0})
   down:function(){
     cg.objects.interface.playSplashAnimator.anim = cg.animations.titleSplashWait;
     cg.objects.interface.playSplashAnimator.reset();
+    cg.objects.interface.controlsTip.graphic.colour = "#333333";
+    cg.objects.interface.controlsTip.graphic.o = 0;
     Player.nextDharntzTime = cg.clock + 10000 + Math.random()*20000;
     onTitleScreen = false;
     cg.objects.interface.titleScreen.graphic.o = 0;
@@ -599,11 +601,13 @@ cg.createObject({"id":"interface",x:0,y:0})
     if (Player.allowTouchControls) { cg.objects.interface.touchControls.graphic.o = 1; }
     fancyCamera.targetTargetOut = false;
 
-    interface.pause = true;
-    cg.objects.interface.controlsTip.graphic.o = 1;
-    cg.objects.interface.controlsTipBackground.graphic.o = 1;
-    cg.objects.interface.inventory.graphic.o = 0;
-    cg.objects.interface.touchControls.graphic.o = 0;
+    if (cg.objects.interface.pauseMenu.graphic.introMode) {
+      interface.pause = true;
+      cg.objects.interface.controlsTip.graphic.o = 1;
+      cg.objects.interface.controlsTipBackground.graphic.o = 1;
+      cg.objects.interface.inventory.graphic.o = 0;
+      cg.objects.interface.touchControls.graphic.o = 0;
+    }
   }
 }),master:false})
 .attach("Button",{oy:-95,ox:175,button:cg.createButton({type:"rect",id:"toggleCredits",width:200,height:100,check:"titleScreen",CGSpace:false,canvasSpaceXAnchor:0,canvasSpaceYAnchor:1,
