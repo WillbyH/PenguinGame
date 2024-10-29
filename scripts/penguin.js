@@ -433,8 +433,7 @@ const decoratives = new class {
           cg.graphics.thoughtBubble.registerSelection(this.id,cg.images.stoneIcon,function(){
             cg.graphics.thoughtBubble.unregisterSelection(this.id);
             cg.graphics.inventory.add("stone",1);
-            let reverb = ChoreoGraph.AudioController.createEffectNode("reverb",{duration:5,decay:1000});
-            ChoreoGraph.AudioController.start("stone"+Math.floor(Math.random()*5),0,0,1,undefined,[reverb]);
+            ChoreoGraph.AudioController.start("stone"+Math.floor(Math.random()*5),0,0,0.6);
             cg.graphics.achievements.progress("hoarder",1);
             this.meta.object.delete = true;
           },this,"E","e");
@@ -459,8 +458,7 @@ const decoratives = new class {
           cg.graphics.thoughtBubble.registerSelection(this.id,cg.images.stickIcon,function(){
             cg.graphics.thoughtBubble.unregisterSelection(this.id);
             cg.graphics.inventory.add("stick",1);
-            let reverb = ChoreoGraph.AudioController.createEffectNode("reverb",{duration:5,decay:1000});
-            ChoreoGraph.AudioController.start("stick"+Math.floor(Math.random()*6),0,0,1,1,[reverb]);
+            ChoreoGraph.AudioController.start("stick"+Math.floor(Math.random()*6),0,0,0.6,1);
             cg.graphics.achievements.progress("hoarder",1);
             this.meta.object.delete = true;
           },this,"E","e");
