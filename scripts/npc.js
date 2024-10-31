@@ -15,6 +15,7 @@ function createNPC(x,y) {
   }}),oy:5})
   .attach("RigidBody",{gravity:0,useColliderForPhysics:true})
   .attach("Script",{updateScript:function(object){
+    if (cg.ready==false) { return; }
     if (object.atTarget) {
       setIdleAnimations(object);
       if (object.lastTargetArriveTime + 5000 < cg.clock) {

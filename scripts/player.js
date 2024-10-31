@@ -428,12 +428,12 @@ Player.movement = function() {
   let movementSpeed = 80;
   let movementVector = [0,0];
   if (!Player.disableUserMovement) {
-    if (onTitleScreen) { return; }
+    if (onTitleScreen||interface.pause) { return; }
     if (ChoreoGraph.Input.keyStates["w"]||ChoreoGraph.Input.keyStates["up"]) { movementVector[1] -= 1; }
     if (ChoreoGraph.Input.keyStates["s"]||ChoreoGraph.Input.keyStates["down"]) { movementVector[1] += 1; }
     if (ChoreoGraph.Input.keyStates["a"]||ChoreoGraph.Input.keyStates["left"]) { movementVector[0] -= 1; }
     if (ChoreoGraph.Input.keyStates["d"]||ChoreoGraph.Input.keyStates["right"]) { movementVector[0] += 1; }
-    if (ChoreoGraph.Input.cursor.hold.any&&Player.allowTouchControls&&fancyCamera.targetOut==false&&cg.buttons.EInteractButton.hovered==false&&cg.buttons.mapButton.hovered==false&&interface.pause==false) {
+    if (ChoreoGraph.Input.cursor.hold.any&&Player.allowTouchControls&&fancyCamera.targetOut==false&&cg.buttons.EInteractButton.hovered==false&&cg.buttons.mapButton.hovered==false) {
       movementVector[0] = ChoreoGraph.Input.cursor.x - cg.cw/2;
       movementVector[1] = ChoreoGraph.Input.cursor.y - cg.ch/2;
     }

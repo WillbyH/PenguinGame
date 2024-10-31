@@ -41,6 +41,7 @@ cg.createImage({id:"stone1",file:"world.png",crop:[3*ssg,0*ssg,1*ssg,1*ssg]});
 cg.createImage({id:"stick0",file:"world.png",crop:[2*ssg,1*ssg,1*ssg,1*ssg]});
 cg.createImage({id:"stick1",file:"world.png",crop:[3*ssg,1*ssg,1*ssg,1*ssg]});
 cg.createImage({id:"carrot",file:"world.png",crop:[4*ssg,0*ssg,1*ssg,1*ssg]});
+cg.createImage({id:"fishSkeleton",file:"world.png",crop:[4*ssg,1*ssg,1*ssg,1*ssg]});
 cg.createImage({id:"stoneIcon",file:"icons.png",crop:[0*ssg,0*ssg,1*ssg,1*ssg]});
 cg.createImage({id:"stickIcon",file:"icons.png",crop:[1*ssg,0*ssg,1*ssg,1*ssg]});
 cg.createImage({id:"snowIcon",file:"icons.png",crop:[2*ssg,0*ssg,1*ssg,1*ssg]});
@@ -119,6 +120,7 @@ cg.settings.callbacks.keyDown = function(key) {
       cg.objects.interface.controlsTip.graphic.o = 0;
       cg.objects.interface.controlsTipBackground.graphic.o = 0;
       cg.unpause();
+      cg.objects.interface.pauseMenu.graphic.introMode = false;
     } else {
       interface.pause = true;
       cg.objects.interface.inventory.graphic.o = 0;
@@ -474,6 +476,12 @@ const decoratives = new class {
     cg.graphics.achievements.goals.hoarder.goal++;
     return newStick;
   }
+  createFishSkeleton(x,y) {
+    let id = "fishSkeleton_"+ChoreoGraph.createId();
+    let newFish = cg.createObject({"id":id,x:x,y:y})
+    .attach("Graphic",{level:1,graphic:cg.createGraphic({"type":"image",image:cg.images.fishSkeleton,width:16,height:16,imageSmoothingEnabled:false}),master:true});
+    return newFish;
+  }
   createSealPopup(sealX,sealY,triggerX,triggerY) {
     let id = "sealPopup_"+ChoreoGraph.createId();
     let triggerOffsetX = triggerX-sealX;
@@ -528,7 +536,8 @@ let objectsToCreate = {
   "Stick" : [[-310,-55],[-22,-63],[95,190],[287,150],[337,26],[429,-77],[274,-204],[213,-396],[323,-372],[555,-354],[674,-41],[381,233],[189,286],[67,275],[-104,354],[-319,449],[-494,354],[-669,240],[-548,45],[-335,222],[-281,68],[-374,-52],[-57,-326],[-96,-474],[-269,-581],[-480,-571],[-441,-435],[-131,-211],[92,23]],
   "Pond" : [[234,73],[-7,404],[-411,304],[-732,-135],[72,-461],[500,221],[608,-169],[-207,-149],[-116,102],[-411,-515]],
   "SnowHeap" : [[-205,164],[365,268],[510,-137],[322,-510],[-235,-316],[-682,118],[-357,-602],[94,353],[251,-273]],
-  "Carrot" : [[233,446],[523,92],[228,-26],[-679,-46],[-402,495],[-28,-457],[661,-231]]
+  "Carrot" : [[233,446],[523,92],[228,-26],[-679,-46],[-402,495],[-28,-457],[661,-231]],
+  "FishSkeleton" : [[182,450],[-665,327],[-503,-506],[49,-67],[433,-477]]
 }
 
 for (let object in objectsToCreate) {
@@ -545,6 +554,7 @@ if (ChoreoGraph.Develop!=undefined) {
   ChoreoGraph.Develop.objectPlacer.registerPrototype("stone",decoratives.createStone,cg.images.stone0);
   ChoreoGraph.Develop.objectPlacer.registerPrototype("stick",decoratives.createStick,cg.images.stick0);
   ChoreoGraph.Develop.objectPlacer.registerPrototype("carrot",decoratives.createCarrot,cg.images.carrot);
+  ChoreoGraph.Develop.objectPlacer.registerPrototype("fishSkeleton",decoratives.createFishSkeleton,cg.images.fishSkeleton);
 }
 // ChoreoGraph.plugins.Visualisation.v.objectAnnotation.active = false;
 // ChoreoGraph.plugins.Visualisation.v.objectAnnotation.key = ["lastTargetArriveTime"];
@@ -587,13 +597,21 @@ cg.images.cliffsSetImage.onLoad = function() {
 
 
 cg.settings.callbacks.loadingLoop = function(cg,loadedImages) {
-  cg.c.fillStyle = "#f2f2f2";
+  cg.c.fillStyle = "#3c536d";
   cg.c.fillRect(0,0,cg.cw,cg.ch);
 
-  cg.c.font = "70px Arial";
-  cg.c.fillStyle = "#000000";
+  cg.c.save();
+  let scaler = cg.cw/1920;
+  let logoScale = 5*scaler;
+  cg.c.imageSmoothingEnabled = false;
+  cg.c.drawImage(cg.images.titleImage.image,cg.cw/2-(160*logoScale)/2,cg.ch/2-(80*logoScale)/2-20,160*logoScale,80*logoScale);
+  cg.c.translate(cg.cw/2,cg.ch/2);
   cg.c.textAlign = "center";
-  cg.c.fillText("Loading...",cg.cw/2,cg.ch/2-10);  
+  cg.c.textBaseline = "middle";
+  cg.c.font = "50px Lilita";
+  cg.c.fillStyle = "#f1f1f1";
+  cg.c.fillText("loading images " + loadedImages + "/" + Object.keys(cg.images).length,0,300);
+  cg.c.restore();
 }
 
 cg.camera.scaleMode = "maximum";
