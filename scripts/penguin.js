@@ -63,6 +63,13 @@ cg.createImage({id:"cliffsSetImage",file:"cliffs.png"});
 
 cg.createImage({id:"detail0",file:"world.png",crop:[0*ssg,2*ssg,3*ssg,2*ssg]});
 
+function hidePauseButton() {
+  keepPauseButtonHidden = true;
+  cg.objects.pauseObject.background.graphic.o=0;
+  cg.objects.pauseObject.leftBox.graphic.o=0;
+  cg.objects.pauseObject.rightBox.graphic.o=0;
+}
+let keepPauseButtonHidden = false;
 let onTitleScreen = true;
 if (onTitleScreen) {
   cg.objects.interface.titleScreen.graphic.o = 1;
@@ -278,9 +285,11 @@ const fancyCamera = cg.createObject({"id":"fancyCamera",x:-10,y:-30})
     cg.objects.pauseObject.background.graphic.o = 0;
   } else {
     titleCamera.Camera.active = false;
-    cg.objects.pauseObject.leftBox.graphic.o = 1;
-    cg.objects.pauseObject.rightBox.graphic.o = 1;
-    cg.objects.pauseObject.background.graphic.o = 1;
+    if (!keepPauseButtonHidden) {
+      cg.objects.pauseObject.leftBox.graphic.o = 1;
+      cg.objects.pauseObject.rightBox.graphic.o = 1;
+      cg.objects.pauseObject.background.graphic.o = 1;
+    }
   }
 }});
 
@@ -610,7 +619,7 @@ cg.settings.callbacks.loadingLoop = function(cg,loadedImages) {
   cg.c.textBaseline = "middle";
   cg.c.font = "50px Lilita";
   cg.c.fillStyle = "#f1f1f1";
-  cg.c.fillText("loading images " + loadedImages + "/" + Object.keys(cg.images).length,0,300);
+  cg.c.fillText("loading images " + loadedImages + "/" + Object.keys(cg.images).length,0,300*scaler);
   cg.c.restore();
 }
 
