@@ -1,4 +1,6 @@
 cglocation.txt
+builds/
+*.tiled-session
 
 # FMOD Project
 audio/FMODBanks

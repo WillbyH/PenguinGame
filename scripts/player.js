@@ -1,27 +1,29 @@
-ChoreoGraph.AudioController.createSound("footstep0","audio/corn footsteps/0.mp3");
-ChoreoGraph.AudioController.createSound("footstep1","audio/corn footsteps/1.mp3");
-ChoreoGraph.AudioController.createSound("footstep2","audio/corn footsteps/2.mp3");
-ChoreoGraph.AudioController.createSound("footstep3","audio/corn footsteps/3.mp3");
-ChoreoGraph.AudioController.createSound("footstep4","audio/corn footsteps/4.mp3");
-ChoreoGraph.AudioController.createSound("footstep5","audio/corn footsteps/5.mp3");
-ChoreoGraph.AudioController.createSound("achievement","audio/achievement.mp3");
+cg.Audio.createSound({source:"corn footsteps/0.mp3"},"footstep0");
+cg.Audio.createSound({source:"corn footsteps/1.mp3"},"footstep1");
+cg.Audio.createSound({source:"corn footsteps/2.mp3"},"footstep2");
+cg.Audio.createSound({source:"corn footsteps/3.mp3"},"footstep3");
+cg.Audio.createSound({source:"corn footsteps/4.mp3"},"footstep4");
+cg.Audio.createSound({source:"corn footsteps/5.mp3"},"footstep5");
+cg.Audio.createSound({source:"achievement.mp3"},"achievement");
 
-ChoreoGraph.AudioController.createSound("stone0","audio/stones/0.mp3");
-ChoreoGraph.AudioController.createSound("stone1","audio/stones/1.mp3");
-ChoreoGraph.AudioController.createSound("stone2","audio/stones/2.mp3");
-ChoreoGraph.AudioController.createSound("stone3","audio/stones/3.mp3");
-ChoreoGraph.AudioController.createSound("stone4","audio/stones/4.mp3");
+cg.Audio.createSound({source:"stones/0.mp3"},"stone0");
+cg.Audio.createSound({source:"stones/1.mp3"},"stone1");
+cg.Audio.createSound({source:"stones/2.mp3"},"stone2");
+cg.Audio.createSound({source:"stones/3.mp3"},"stone3");
+cg.Audio.createSound({source:"stones/4.mp3"},"stone4");
 
-ChoreoGraph.AudioController.createSound("stick0","audio/sticks/0.mp3");
-ChoreoGraph.AudioController.createSound("stick1","audio/sticks/1.mp3");
-ChoreoGraph.AudioController.createSound("stick2","audio/sticks/2.mp3");
-ChoreoGraph.AudioController.createSound("stick3","audio/sticks/3.mp3");
-ChoreoGraph.AudioController.createSound("stick4","audio/sticks/4.mp3");
-ChoreoGraph.AudioController.createSound("stick5","audio/sticks/5.mp3");
+cg.Audio.createSound({source:"sticks/0.mp3"},"stick0");
+cg.Audio.createSound({source:"sticks/1.mp3"},"stick1");
+cg.Audio.createSound({source:"sticks/2.mp3"},"stick2");
+cg.Audio.createSound({source:"sticks/3.mp3"},"stick3");
+cg.Audio.createSound({source:"sticks/4.mp3"},"stick4");
+cg.Audio.createSound({source:"sticks/5.mp3"},"stick5");
 
-ChoreoGraph.AudioController.createSound("music0","audio/music0.mp3",{autoplay:true});
-ChoreoGraph.AudioController.createSound("music1","audio/music1.mp3");
-ChoreoGraph.AudioController.createSound("music2","audio/music2.mp3");
+cg.Audio.createSound({source:"music0.mp3"},"music0");
+cg.Audio.createSound({source:"music1.mp3"},"music1");
+cg.Audio.createSound({source:"music2.mp3"},"music2");
+
+cg.Audio.sounds.music0.play({allowBuffer:true,fadeIn:2,volume:1});
 
 let nextMusicTime = 80000+Math.random()*40000;
 let nextMusic = {
@@ -35,129 +37,144 @@ function pickNextMusic() {
 }
 pickNextMusic();
 
-cg.createEvent({duration:1,end:function(){
+cg.createEvent({
+  duration : 1,
+  end : () => {
   if (cg.clock>nextMusicTime) {
     nextMusicTime = cg.clock + 80000+Math.random()*40000;
     let next = pickNextMusic();
     if (next==0) {
-      ChoreoGraph.AudioController.start("music0",0,0,0.4);
+      cg.Audio.play({id:"music0",volume:0.4});
     } else if (next==1) {
-      ChoreoGraph.AudioController.start("music1",0,0,0.5);
+      cg.Audio.play({id:"music1",volume:0.5});
     } else if (next==2){
-      ChoreoGraph.AudioController.start("music2",0,0,0.6);
+      cg.Audio.play({id:"music2",volume:0.6});
     }
   }
 },loop:true,id:"musicEvent"});
 
-ChoreoGraph.AudioController.masterVolume = 1;
+cg.Audio.masterVolume = 1;
 
+let penGraphics = {
+  "fishing" : {ssX:0,ssY:2},
+  "blink" : {ssX:2,ssY:2},
 
-let penguinGraphicsPackageCount = 0;
-function createPenguinGraphicsPackage() {
-  let penguinFrames = {
-    "southIdle" : {ssX:0,ssY:0,flipX:false},
-    "southLeft" : {ssX:0,ssY:1,flipX:false},
-    "southRight" : {ssX:0,ssY:1,flipX:true},
-    "westIdle" : {ssX:1,ssY:0,flipX:true},
-    "westLeft" : {ssX:1,ssY:1,flipX:true},
-    "westRight" : {ssX:1,ssY:2,flipX:true},
-    "eastIdle" : {ssX:1,ssY:0,flipX:false},
-    "eastLeft" : {ssX:1,ssY:1,flipX:false},
-    "eastRight" : {ssX:1,ssY:2,flipX:false},
-    "northIdle" : {ssX:2,ssY:0,flipX:false},
-    "northLeft" : {ssX:2,ssY:1,flipX:false},
-    "northRight" : {ssX:2,ssY:1,flipX:true},
-  
-    "southEastIdle" : {ssX:3,ssY:0,flipX:false},
-    "southEastLeft" : {ssX:3,ssY:1,flipX:false},
-    "southEastRight" : {ssX:3,ssY:2,flipX:false},
-    "southWestIdle" : {ssX:3,ssY:0,flipX:true},
-    "southWestLeft" : {ssX:3,ssY:1,flipX:true},
-    "southWestRight" : {ssX:3,ssY:2,flipX:true},
-    "northEastIdle" : {ssX:4,ssY:0,flipX:false},
-    "northEastLeft" : {ssX:4,ssY:1,flipX:false},
-    "northEastRight" : {ssX:4,ssY:2,flipX:false},
-    "northWestIdle" : {ssX:4,ssY:0,flipX:true},
-    "northWestLeft" : {ssX:4,ssY:1,flipX:true},
-    "northWestRight" : {ssX:4,ssY:2,flipX:true},
-    
-    "fishing" : {ssX:0,ssY:2,flipX:false},
-    "blink" : {ssX:2,ssY:2,flipX:false},
-  }
-  
-  for (let key in penguinFrames) {
-    let frame = penguinFrames[key];
-    let penguinImage = cg.createImage({id:"penguinImage_"+key,file:"penguins.png",crop:[frame.ssX*ssg+frame.ssX,frame.ssY*ssg+frame.ssY,ssg,ssg]});
-    cg.createGraphic({type:"image",id:"penFrame_"+penguinGraphicsPackageCount+"_"+key,image:penguinImage,width:ssg,height:ssg,imageSmoothingEnabled:false,flipX:frame.flipX});
-  }
+  "southIdle" : {ssX:0,ssY:0},
+  "southStep" : {ssX:0,ssY:1},
+  "sideIdle" : {ssX:1,ssY:0},
+  "sideStepA" : {ssX:1,ssY:1},
+  "sideStepB" : {ssX:1,ssY:2},
+  "northIdle" : {ssX:2,ssY:0},
+  "northStep" : {ssX:2,ssY:1},
+  "southDiagonalIdle" : {ssX:3,ssY:0},
+  "southDiagonalStepA" : {ssX:3,ssY:1},
+  "southDiagonalStepB" : {ssX:3,ssY:2},
+  "northDiagonalIdle" : {ssX:4,ssY:0},
+  "northDiagonalStepA" : {ssX:4,ssY:1},
+  "northDiagonalStepB" : {ssX:4,ssY:2}
+}
 
-  let penAnim = {
-    "idleSouthEast" : ["southEastIdle"],
-    "idleSouth" : ["southIdle"],
-    "idleSouthWest" : ["southWestIdle"],
-    "idleWest" : ["westIdle"],
-    "idleNorthWest" : ["northWestIdle"],
-    "idleEast" : ["eastIdle"],
-    "idleSouthEast" : ["southEastIdle"],
-    "idleNorth" : ["northIdle"],
-    "idleNorthEast" : ["northEastIdle"],
-  
-    "walkSouthEast" : ["southEastLeft","southEastIdle","southEastRight","southEastIdle"],
-    "walkSouth" : ["southLeft","southIdle","southRight","southIdle"],
-    "walkSouthWest" : ["southWestLeft","southWestIdle","southWestRight","southWestIdle"],
-    "walkWest" : ["westLeft","westIdle","westRight","westIdle"],
-    "walkNorthWest" : ["northWestLeft","northWestIdle","northWestRight","northWestIdle"],
-    "walkEast" : ["eastLeft","eastIdle","eastRight","eastIdle"],
-    "walkSouthEast" : ["southEastLeft","southEastIdle","southEastRight","southEastIdle"],
-    "walkNorth" : ["northLeft","northIdle","northRight","northIdle"],
-    "walkNorthEast" : ["northEastLeft","northEastIdle","northEastRight","northEastIdle"],
-  
-    "fishing" : ["fishing"],
-    "idleSouthBlink" : ["blink"],
-    "dharntz" : ["southLeft","southRight","southLeft","southRight","southLeft","southRight","southLeft","southRight","southIdle","southEastLeft","southIdle","southWestIdle","westIdle","northWestIdle","northIdle","northLeft","northRight","northLeft","northRight","northLeft","northRight","northLeft","northRight","northLeft","northRight","northEastIdle","eastIdle","southEastIdle","southIdle","southWestRight","southIdle","southEastIdle","eastIdle","northEastIdle","northIdle","northWestIdle","westIdle","southWestIdle","southIdle","southEastLeft","southIdle","southWestRight","southIdle","southEastLeft","southIdle","southWestRight","southLeft","southRight","southLeft","southRight","southLeft","southRight","southLeft","southRight"],
-  };
-  for (let key in penAnim) {
-    let rawFrames = penAnim[key];
-    let frames = [];
-    for (let i=0;i<rawFrames.length;i++) {
-      frames.push("penFrame_"+penguinGraphicsPackageCount+"_"+rawFrames[i]);
+for (let key in penGraphics) {
+  let frame = penGraphics[key];
+  let penguinImage = cg.createImage({id:"penguinImage_"+key,file:"penguins.png",crop:[frame.ssX*ssg+frame.ssX,frame.ssY*ssg+frame.ssY,ssg,ssg]});
+  cg.createGraphic({
+    type:"image",
+    image:penguinImage,
+    width:ssg,
+    height:ssg,
+  },"penguin_"+key);
+}
+
+let penFrames = {
+  southIdle : ["southIdle",false],
+  southLeft : ["southStep",false],
+  southRight : ["southStep",true],
+  westIdle : ["sideIdle",true],
+  westLeft : ["sideStepA",true],
+  westRight : ["sideStepB",true],
+  eastIdle : ["sideIdle",false],
+  eastLeft : ["sideStepA",false],
+  eastRight : ["sideStepB",false],
+  northIdle : ["northIdle",false],
+  northLeft : ["northStep",false],
+  northRight : ["northStep",true],
+
+  southEastIdle : ["southDiagonalIdle",false],
+  southEastLeft : ["southDiagonalStepA",false],
+  southEastRight : ["southDiagonalStepB",false],
+  southWestIdle : ["southDiagonalIdle",true],
+  southWestLeft : ["southDiagonalStepA",true],
+  southWestRight : ["southDiagonalStepB",true],
+
+  northEastIdle : ["northDiagonalIdle",false],
+  northEastLeft : ["northDiagonalStepA",false],
+  northEastRight : ["northDiagonalStepB",false],
+  northWestIdle : ["northDiagonalIdle",true],
+  northWestLeft : ["northDiagonalStepA",true],
+  northWestRight : ["northDiagonalStepB",true],
+
+  fishing : ["fishing",false],
+  blink : ["blink",false]
+}
+
+let penAnimations = {
+  idleSouthEast : ["southEastIdle"],
+  idleSouth : ["southIdle"],
+  idleSouthWest : ["southWestIdle"],
+  idleWest : ["westIdle"],
+  idleNorthWest : ["northWestIdle"],
+  idleEast : ["eastIdle"],
+  idleSouthEast : ["southEastIdle"],
+  idleNorth : ["northIdle"],
+  idleNorthEast : ["northEastIdle"],
+
+  walkSouthEast : ["southEastLeft","southEastIdle","southEastRight","southEastIdle"],
+  walkSouth : ["southLeft","southIdle","southRight","southIdle"],
+  walkSouthWest : ["southWestLeft","southWestIdle","southWestRight","southWestIdle"],
+  walkWest : ["westLeft","westIdle","westRight","westIdle"],
+  walkNorthWest : ["northWestLeft","northWestIdle","northWestRight","northWestIdle"],
+  walkEast : ["eastLeft","eastIdle","eastRight","eastIdle"],
+  walkSouthEast : ["southEastLeft","southEastIdle","southEastRight","southEastIdle"],
+  walkNorth : ["northLeft","northIdle","northRight","northIdle"],
+  walkNorthEast : ["northEastLeft","northEastIdle","northEastRight","northEastIdle"],
+
+  fishing : ["fishing"],
+  idleSouthBlink : ["blink"],
+  dharntz : ["southLeft","southRight","southLeft","southRight","southLeft","southRight","southLeft","southRight","southIdle","southEastLeft","southIdle","southWestIdle","westIdle","northWestIdle","northIdle","northLeft","northRight","northLeft","northRight","northLeft","northRight","northLeft","northRight","northLeft","northRight","northEastIdle","eastIdle","southEastIdle","southIdle","southWestRight","southIdle","southEastIdle","eastIdle","northEastIdle","northIdle","northWestIdle","westIdle","southWestIdle","southIdle","southEastLeft","southIdle","southWestRight","southIdle","southEastLeft","southIdle","southWestRight","southLeft","southRight","southLeft","southRight","southLeft","southRight","southLeft","southRight","southIdle"],
+};
+for (let animId in penAnimations) {
+  let frameRate = 1 / 15;
+  let animation = cg.Animation.createAnimation({},animId);
+  let data = [0];
+  let lastFlip = false;
+  for (let frameId of penAnimations[animId]) {
+    let frameData = penFrames[frameId];
+    if (lastFlip!=frameData[1]) {
+      data.push(["v",["Graphic","transform","flipX"],frameData[1]]); // Flipped
+      lastFlip = frameData[1];
     }
-    penAnim[key] = cg.createGraphicAnimation({
-      frames:frames,
-      GraphicKey:["Graphic","graphic"],
-      id:"penguin"+penguinGraphicsPackageCount+"_"+key,
-      frameRate:10,
-      endCallback:function(object,Animator) {
-        if (this.id.endsWith("_dharntz")) {
-          Animator.anim = object.penAnim.idleSouth;
-          Animator.reset();
-        }
-      }
-    });
-  }
 
-  penguinGraphicsPackageCount++;
-  return penAnim;
+    data.push(["v",["Graphic","graphic"],cg.graphics["penguin_"+frameData[0]]]); // Graphic
+
+    data.push([frameRate])
+  }
+  animation.loadRaw(data,[{keySet:"time"}]);
 }
 
 for (let i=0;i<8;i++) {
   let image = cg.createImage({id:"smallSplashImage_"+i,file:"smallSplash.png",crop:[8*i,0,8,8]});
-  cg.createGraphic({type:"image",id:"smallSplashFrame_"+i,image:image,width:8,height:8,imageSmoothingEnabled:false});
+  cg.createGraphic({type:"image",image:image,width:8,height:8,imageSmoothingEnabled:false},"smallSplashFrame_"+i);
 }
-cg.createGraphicAnimation({
-  frames:["smallSplashFrame_0","smallSplashFrame_1","smallSplashFrame_2","smallSplashFrame_3","smallSplashFrame_4","smallSplashFrame_5","smallSplashFrame_6","smallSplashFrame_7"],
-  GraphicKey:["Graphic","graphic"],
-  id:"smallSplash",
-  frameRate:15
-});
 
-ChoreoGraph.graphicTypes.thoughtBubble = new class thoughtBubble {
-  setup(g,graphicInit,cg) {
-    g.selections = {};
-    g.selected = null;
-    g.imageSize = 10;
+cg.Animation.createAnimationFromPacked("0&sprite=f:15:Graphic,graphic:smallSplashFrame_0|smallSplashFrame_1|smallSplashFrame_2|smallSplashFrame_3|smallSplashFrame_4|smallSplashFrame_5|smallSplashFrame_6|smallSplashFrame_7",{},"smallSplash");
 
-    g.registerSelection = function(id,image,interactionCallback,meta,tooltip="",hotkey="e") {
+cg.graphicTypes.thoughtBubble = new class thoughtBubble {
+  setup() {
+    this.selections = {};
+    this.selected = null;
+    this.imageSize = 10;
+
+    this.registerSelection = (id,image,interactionCallback,meta,tooltip="",hotkey="e") => {
       let newSelection = {
         id:id,
         interactionCallback:interactionCallback,
@@ -166,116 +183,114 @@ ChoreoGraph.graphicTypes.thoughtBubble = new class thoughtBubble {
         hotkey : hotkey,
         meta : meta
       };
-      g.selected = newSelection;
-      g.selections[id] = newSelection;
+      this.selected = newSelection;
+      this.selections[id] = newSelection;
     }
-    g.unregisterSelection = function(id) {
-      delete g.selections[id];
-      if (g.selected?.id==id) {
-        if (Object.keys(g.selections).length==0) {
-          g.selected = null;
+    this.unregisterSelection = (id) => {
+      delete this.selections[id];
+      if (this.selected?.id==id) {
+        if (Object.keys(this.selections).length==0) {
+          this.selected = null;
         } else {
-          g.selected = g.selections[Object.keys(g.selections)[0]];
+          this.selected = this.selections[Object.keys(this.selections)[0]];
         }
       }
     }
   }
-  draw(g,cg,ax,ay) {
-    if (g.selected==null) { return; }
-    cg.c.strokeStyle = "#88bbeb";
-    cg.c.fillStyle = "#dddddd";
-    cg.c.beginPath();
-    cg.c.arc(ax,ay,5,0.8,Math.PI-0.8,true);
-    cg.c.lineTo(ax,ay+7);
-    cg.c.closePath();
-    cg.c.globalAlpha = 0.5;
-    cg.c.fill();
-    cg.c.globalAlpha = 1;
-    cg.c.stroke();
-    cg.c.imageSmoothingEnabled = false;
-    if (g.selected.image==undefined) { return; }
-    cg.drawImage(g.selected.image,ax,ay,g.imageSize,g.imageSize,0,false);
-    cg.c.font = "4px Lilita";
-    cg.c.textAlign = "left";
-    cg.c.strokeStyle = "#ffffff";
-    cg.c.fillStyle = "#88bbeb";
-    cg.c.lineWidth = 1.5;
-    cg.c.strokeText(g.selected.tooltip,ax+2,ay+7);
-    cg.c.fillText(g.selected.tooltip,ax+2,ay+7);
+  draw(c,ax,ay,canvas) {
+    if (this.selected==null||!window.interface.showUI) { return; }
+    c.strokeStyle = "#88bbeb";
+    c.fillStyle = "#dddddd";
+    c.lineWidth = 1.5;
+    c.beginPath();
+    c.arc(ax,ay,5,0.8,Math.PI-0.8,true);
+    c.lineTo(ax,ay+7);
+    c.closePath();
+    c.globalAlpha = 0.5;
+    c.fill();
+    c.globalAlpha = 1;
+    c.stroke();
+    c.imageSmoothingEnabled = false;
+    if (this.selected.image==undefined) { return; }
+    canvas.drawImage(this.selected.image,ax,ay,this.imageSize,this.imageSize);
+    c.font = "4px Lilita";
+    c.textAlign = "left";
+    c.strokeStyle = "#ffffff";
+    c.fillStyle = "#88bbeb";
+    c.strokeText(this.selected.tooltip,ax+2,ay+7);
+    c.fillText(this.selected.tooltip,ax+2,ay+7);
   }
 }
 
-ChoreoGraph.graphicTypes.fishingLine = new class fishingLine {
-  setup(g,graphicInit,cg) {
-    g.isFishing = false;
-    g.isCast = false;
-    g.castTime = 0;
-    g.castDuration = 1200;
-    g.playSplashNext = true;
-    g.nextCatch = 0;
-    g.canMakeSnareNoise = true;
-    g.FMODEvent = null;
-    
-    g.isLatched = false;
-    g.latchTime = 0;
+cg.graphicTypes.fishingLine = new class fishingLine {
+  setup() {
+    this.isFishing = false;
+    this.isCast = false;
+    this.castTime = 0;
+    this.castDuration = 1200;
+    this.playSplashNext = true;
+    this.nextCatch = 0;
+    this.canMakeSnareNoise = true;
+    this.FMODEvent = null;
 
-    g.isCaught = false;
-    g.caughtTime = 0;
-    g.catchDuration = 1200;
+    this.isLatched = false;
+    this.latchTime = 0;
 
-    g.catchInterval = 1400;
+    this.isCaught = false;
+    this.caughtTime = 0;
+    this.catchDuration = 1200;
 
-    g.minimumCatchWait = 2000;
-    g.randomCatchWait = 10000;
-    // g.minimumCatchWait = 500;
-    // g.randomCatchWait = 1000;
+    this.catchInterval = 1400;
 
-    g.latchState = 0;
-    g.latchStateSizes = {
+    this.minimumCatchWait = 2000;
+    this.randomCatchWait = 10000;
+
+    this.latchState = 0;
+    this.latchStateSizes = {
       "anchovy" : [0.6,0.4,0.3],
       "krill" : [0.4,0.3,0.2],
       "mackerel" : [0.3,0.2,0.1]
     }
 
-    g.pondId = null;
-    g.isFirstSnare = true;
+    this.pondId = null;
+    this.isFirstSnare = true;
 
-    g.nextFishType = "anchovy";
-    g.caughtFishTypes = [];
-    g.fishCaught = 0;
+    this.nextFishType = "anchovy";
+    this.caughtFishTypes = [];
+    this.fishCaught = 0;
 
-    g.LCGx = 643;
-    g.LCGa = 75;
-    g.LCGm = 65537;
+    this.LCGx = 643;
+    this.LCGa = 75;
+    this.LCGm = 65537;
 
-    g.reregister = function() {
+    this.reregister = function() {
       cg.graphics.thoughtBubble.registerSelection(this.pondId,cg.images.fishingIcon,function(){
         cg.graphics.thoughtBubble.unregisterSelection(this.id);
         Player.fishingLine.isFishing = true;
       },this,"E","e");
     }
 
-    g.tug = function() {
+    this.tug = function() {
       if (this.isLatched) {
-        let latchMarkerHeight = Math.sin((cg.clock-g.latchTime)/500);
-        if (Math.abs(latchMarkerHeight)<this.latchStateSizes[g.nextFishType][this.latchState]) {
+        let latchMarkerHeight = Math.sin((cg.clock-this.latchTime)/500);
+        if (Math.abs(latchMarkerHeight)<this.latchStateSizes[this.nextFishType][this.latchState]) {
           this.latchState++;
-          if (this.latchState>=this.latchStateSizes[g.nextFishType].length) {
+          if (this.latchState>=this.latchStateSizes[this.nextFishType].length) {
             cg.graphics.thoughtBubble.unregisterSelection("tug");
-            g.caughtTime = cg.clock;
+            this.caughtTime = cg.clock;
             Player.fishingLine.FMODEvent.setParameterByName("stage",2,false);
-            cg.graphics.inventory.add(g.nextFishType,1);
-            g.isCaught = true;
+            cg.graphics.inventory.add(this.nextFishType,1);
+            this.isCaught = true;
           }
         } else {
           cg.graphics.thoughtBubble.unregisterSelection("tug");
           this.reregister();
           this.endCast();
-          Player.fishingLine.FMODEvent.stop(ChoreoGraph.FMODConnector.FMOD.STUDIO_STOP_ALLOWFADEOUT);
+          Player.fishingLine.FMODEvent.stop(ChoreoGraph.FMOD.FMOD.STUDIO_STOP_ALLOWFADEOUT);
         }
       }
     }
-    g.endCast = function() {
+    this.endCast = function() {
       Player.fishingLine.isFishing = false;
       Player.fishingLine.isCast = false;
       Player.fishingLine.isLatched = false;
@@ -285,41 +300,44 @@ ChoreoGraph.graphicTypes.fishingLine = new class fishingLine {
       cg.graphics.thoughtBubble.unregisterSelection("tug");
     }
   }
-  draw(g,cg,ax,ay) {
-    if (!g.isFishing) { return; }
-    cg.c.strokeStyle = "#ffffff";
-    cg.c.lineWidth = 0.3;
-    if (g.isCast&&cg.clock-g.castTime>g.castDuration-300&&g.playSplashNext) {
-      g.playSplashNext = false;
-      cg.createObject({x:Player.Transform.x,y:Player.Transform.y+24.5})
-      .attach("Graphic",{level:4,graphic:cg.graphics.smallSplashFrame_0,master:true})
-      .attach("Animator",{anim:cg.animations.smallSplash,selfDestructObject:true})
+  draw(c,ax,ay,canvas) {
+    if (!this.isFishing) { return; }
+    c.strokeStyle = "#ffffff";
+    c.lineWidth = 0.3;
+    if (this.isCast&&cg.clock-this.castTime>this.castDuration-300&&this.playSplashNext) {
+      this.playSplashNext = false;
+      cg.scenes.main.addObject(cg.createObject({transformInit:{x:Player.transform.x,y:Player.transform.y+24.5}},"splash")
+      .attach("Graphic",{collection:"ui",graphic:cg.graphics.smallSplashFrame_0})
+      .attach("Animator",{animation:cg.Animation.animations.smallSplash,loop:false,onEnd:(Animator) => {
+        Animator.object.delete();
+      }}));
     }
-    if (g.isCast) {
-      if (g.isCaught) { // Reeling in line (its pulling up a fish)
-        let timeSinceCaught = cg.clock-g.caughtTime;
-        let catchHeight = 28.3-28.3*(timeSinceCaught/g.catchDuration);
-        cg.c.strokeStyle = "#ffffff";
-        cg.c.beginPath();
-        cg.c.moveTo(ax,ay-3);
-        cg.c.lineTo(ax,ay-3+catchHeight);
-        cg.c.stroke();
-        cg.c.imageSmoothingEnabled = false;
+    if (this.isCast) {
+      if (this.isCaught) { // Reeling in line (its pulling up a fish)
+        let timeSinceCaught = cg.clock-this.caughtTime;
+        let catchHeight = 28.3-28.3*(timeSinceCaught/this.catchDuration);
+        c.strokeStyle = "#ffffff";
+        c.beginPath();
+        c.moveTo(ax,ay-3);
+        c.lineTo(ax,ay-3+catchHeight);
+        c.stroke();
+        c.imageSmoothingEnabled = false;
         let icons = {
           "anchovy" : "fishAnchovyIcon",
           "krill" : "fishKrillIcon",
           "mackerel" : "fishMackerelIcon"
         }
-        cg.drawImage(cg.images[icons[Player.fishingLine.nextFishType]],ax,ay-3+catchHeight,cg.z*3,cg.z*3,0,false);
-        if (timeSinceCaught>g.catchDuration) {
-          g.endCast();
-          if (g.caughtFishTypes.includes(g.nextFishType)==false) {
+        canvas.drawImage(cg.images[icons[Player.fishingLine.nextFishType]],ax,ay-3+catchHeight,canvas.camera.cz*3,canvas.camera.cz*3);
+        if (timeSinceCaught>this.catchDuration) {
+          this.endCast();
+          if (this.caughtFishTypes.includes(this.nextFishType)==false) {
             cg.graphics.achievements.progress("fishing",1);
+            cg.graphics.achievements.progress("overfishing",1);
           }
-          g.caughtFishTypes.push(g.nextFishType);
-          g.reregister();
+          this.caughtFishTypes.push(this.nextFishType);
+          this.reregister();
         }
-      } else if (cg.clock-g.castTime<g.castDuration) { // Casting line (its falling)
+      } else if (cg.clock-this.castTime<this.castDuration) { // Casting line (its falling)
         function getCastHeight(t,length,heightMultiplyer) {
           t = t/length;
           if (t<0.25) {
@@ -330,77 +348,77 @@ ChoreoGraph.graphicTypes.fishingLine = new class fishingLine {
             return (Math.sin(30*Math.PI+1.6)/(900*(t-0.78))-0.96)*heightMultiplyer;
           }
         }
-        cg.c.beginPath();
-        cg.c.moveTo(ax,ay-3);
-        let castHeight = getCastHeight((cg.clock-g.castTime),g.castDuration,28.3);
-        cg.c.lineTo(ax,ay-3-castHeight);
-        cg.c.stroke();
-        cg.c.fillStyle = "#db2c00";
-        cg.c.fillRect(ax-0.8,ay-3-castHeight,1.6,1.6);
+        c.beginPath();
+        c.moveTo(ax,ay-3);
+        let castHeight = getCastHeight((cg.clock-this.castTime),this.castDuration,28.3);
+        c.lineTo(ax,ay-3-castHeight);
+        c.stroke();
+        c.fillStyle = "#db2c00";
+        c.fillRect(ax-0.8,ay-3-castHeight,1.6,1.6);
       } else {
-        if (g.isLatched) { // Latched (mini game)
-          cg.c.beginPath();
-          cg.c.moveTo(ax,ay-3);
-          let swaySineX = Math.sin((cg.clock-g.latchTime)/2000*2*Math.PI)*2;
-          let swaySineY = Math.sin((cg.clock-g.latchTime)/1200*2*Math.PI);
-          cg.c.lineTo(ax-swaySineX,ay+25-swaySineY);
-          cg.c.stroke();
+        if (this.isLatched) { // Latched (mini game)
+          c.beginPath();
+          c.moveTo(ax,ay-3);
+          let swaySineX = Math.sin((cg.clock-this.latchTime)/2000*2*Math.PI)*2;
+          let swaySineY = Math.sin((cg.clock-this.latchTime)/1200*2*Math.PI);
+          c.lineTo(ax-swaySineX,ay+25-swaySineY);
+          c.stroke();
 
-          cg.c.fillStyle = "#2bc663";
-          let latchingHeight = g.latchStateSizes[g.nextFishType][g.latchState]*20;
-          cg.c.fillRect(ax+8,ay-15+10-(latchingHeight/2),6,latchingHeight)
-          cg.c.fillStyle = "#f03f96"
+          c.fillStyle = "#2bc663";
+          let latchingHeight = this.latchStateSizes[this.nextFishType][this.latchState]*20;
+          c.fillRect(ax+8,ay-15+10-(latchingHeight/2),6,latchingHeight)
+          c.fillStyle = "#f03f96"
           let markerHeight = 0.5;
-          let height = Math.sin((cg.clock-g.latchTime)/500)*(10-markerHeight/2);
-          cg.c.fillRect(ax+8,ay-15+height+9+markerHeight,6,markerHeight);
-          cg.c.strokeStyle = "#000000";
-          cg.c.lineWidth = 1;
-          cg.c.strokeRect(ax+8,ay-15,6,20);
+          let height = Math.sin((cg.clock-this.latchTime)/500)*(10-markerHeight/2);
+          c.fillRect(ax+8,ay-15+height+9+markerHeight,6,markerHeight);
+          c.strokeStyle = "#000000";
+          c.lineWidth = 1;
+          c.strokeRect(ax+8,ay-15,6,20);
         } else { // Casted (waiting)
           let lineShake = 0;
-          if (cg.clock>g.nextCatch) {
-            lineShake = Math.sin((cg.clock-g.latchTime)/400*2*Math.PI)*0.4;
+          if (cg.clock>this.nextCatch) {
+            lineShake = Math.sin((cg.clock-this.latchTime)/400*2*Math.PI)*0.4;
           }
-          cg.c.beginPath();
-          cg.c.moveTo(ax,ay-3);
-          cg.c.lineTo(ax+lineShake,ay+25);
-          cg.c.stroke();
-          if (cg.clock>g.nextCatch) {
-            if (g.nextCatch-cg.clock+g.catchInterval<0) { // Gets called once at the end of a catch interval
-              g.nextCatch = cg.clock + g.minimumCatchWait + Math.random()*g.randomCatchWait;
-              g.canMakeSnareNoise = true;
+          c.beginPath();
+          c.moveTo(ax,ay-3);
+          c.lineTo(ax+lineShake,ay+25);
+          c.stroke();
+          if (cg.clock>this.nextCatch) {
+            if (this.nextCatch-cg.clock+this.catchInterval<0) { // Gets called once at the end of a catch interval
+              this.nextCatch = cg.clock + this.minimumCatchWait + Math.random()*this.randomCatchWait;
+              this.canMakeSnareNoise = true;
               cg.graphics.thoughtBubble.unregisterSelection("grab");
             } else {
-              cg.c.fillStyle = "#db2c00";
-              cg.c.fillRect(ax-0.8+lineShake,ay+25,1.6,0.8);
-              if (g.canMakeSnareNoise) { // Calls once at the start of a catch intervale
-                ChoreoGraph.FMODConnector.createEventInstance("event:/Snare",true);
-                if (g.isFirstSnare==false) {
+              c.fillStyle = "#db2c00";
+              c.fillRect(ax-0.8+lineShake,ay+25,1.6,0.8);
+              if (this.canMakeSnareNoise) { // Calls once at the start of a catch intervale
+                ChoreoGraph.FMOD.createEventInstance("event:/Snare");
+                if (this.isFirstSnare==false) {
                   cg.graphics.thoughtBubble.registerSelection("grab",cg.images.fishingIcon,function(){
                     cg.graphics.thoughtBubble.unregisterSelection("grab");
                     Player.fishingLine.isFishing = true;
                   },this,"E","e");
                 }
-                g.isFirstSnare = false;
-                g.canMakeSnareNoise = false;
+                this.isFirstSnare = false;
+                this.canMakeSnareNoise = false;
               }
             }
           } else {
-            cg.c.fillStyle = "#db2c00";
-            cg.c.fillRect(ax-0.8+lineShake,ay+24,1.6,1.6);
+            c.fillStyle = "#db2c00";
+            c.fillRect(ax-0.8+lineShake,ay+24,1.6,1.6);
           }
         }
       }
     } else {
-      cg.c.beginPath();
-      cg.c.moveTo(ax,ay-3);
-      cg.c.lineTo(ax,ay+2.5);
-      cg.c.stroke();
+      c.beginPath();
+      c.moveTo(ax,ay-3);
+      c.lineTo(ax,ay+2.5);
+      c.stroke();
     }
   }
 }
 
-const Player = cg.createObject({"id":"Player",stopNPC:true,x:0,y:0,
+const Player = cg.createObject({stopNPC:true,x:0,y:0,
   disableUserMovement : false,
   targetLoc : [0,0],
   targetDir : "south",
@@ -409,38 +427,71 @@ const Player = cg.createObject({"id":"Player",stopNPC:true,x:0,y:0,
   nextBlink : 0,
   lastFootstepSound : 0,
   footstepInterval : 200
-});
-Player.penAnim = createPenguinGraphicsPackage();
-Player.attach("Graphic",{level:2,graphic:Player.penAnim.idleSouth.data[0][1],master:true})
-.attach("Graphic",{level:3,graphic:cg.createGraphic({type:"thoughtBubble",id:"thoughtBubble",oy:-17}),master:false})
-.attach("Graphic",{level:2,graphic:cg.createGraphic({type:"fishingLine",id:"fishingLineGraphic"}),master:true,keyOverride:"fishingLineGraphic"})
-.attach("Animator",{anim:Player.penAnim.idleSouth})
-.attach("Collider",{collider:cg.createCollider({type:"circle",id:"playerCollider",radius:6,groups:[0,1],master:true}),oy:5})
-.attach("Camera",{offset:{x:0,y:0}})
-.attach("RigidBody",{gravity:0,useColliderForPhysics:true});
+},"Player");
+Player.attach("Graphic",{collection:"ui",graphic:cg.graphics.penguin_southIdle,master:true})
+.attach("Graphic",{
+  master : false,
+  collection : "ui",
+  transformInit : {oy:-17},
+  graphic : cg.createGraphic({
+    type : "thoughtBubble"
+  },"thoughtBubble")
+})
+.attach("Graphic",{
+  master : true,
+  key : "fishingLineGraphic",
+  collection : "ui",
+  graphic : cg.createGraphic({
+    type:"fishingLine",
+  },"fishingLineGraphic")
+})
+.attach("Animator",{animation:cg.Animation.animations.idleSouth})
+.attach("RigidBody",{
+  drag : 7,
+  collider : cg.Physics.createCollider({
+    type : "circle",
+    radius : 6,
+    groups : [0,1],
+    transformInit : {oy:5}
+  },"playerCollider"),
+})
+.attach("Camera",{camera:cg.cameras.main,active:false})
 
 Player.fishingLine = Player.fishingLineGraphic.graphic;
-Player.allowTouchControls = true;
 
+cg.scenes.main.addObject(Player);
+
+cg.Input.createAction({keys:["w","up","conleftup","condpadup","conrightup"]},"up");
+cg.Input.createAction({keys:["s","down","conleftdown","condpaddown","conrightdown"]},"down");
+cg.Input.createAction({keys:["a","left","conleftleft","condpadleft","conrightleft"]},"left");
+cg.Input.createAction({keys:["d","right","conrightright","condpadright","conleftright"]},"right");
 
 Player.movement = function() {
   let rb = Player.RigidBody;
   let movementSpeed = 80;
   let movementVector = [0,0];
-  if (!Player.disableUserMovement) {
-    if (onTitleScreen||interface.pause) { return; }
-    if (ChoreoGraph.Input.keyStates["w"]||ChoreoGraph.Input.keyStates["up"]) { movementVector[1] -= 1; }
-    if (ChoreoGraph.Input.keyStates["s"]||ChoreoGraph.Input.keyStates["down"]) { movementVector[1] += 1; }
-    if (ChoreoGraph.Input.keyStates["a"]||ChoreoGraph.Input.keyStates["left"]) { movementVector[0] -= 1; }
-    if (ChoreoGraph.Input.keyStates["d"]||ChoreoGraph.Input.keyStates["right"]) { movementVector[0] += 1; }
-    if (ChoreoGraph.Input.cursor.hold.any&&Player.allowTouchControls&&fancyCamera.targetOut==false&&cg.buttons.EInteractButton.hovered==false&&cg.buttons.mapButton.hovered==false) {
-      movementVector[0] = ChoreoGraph.Input.cursor.x - cg.cw/2;
-      movementVector[1] = ChoreoGraph.Input.cursor.y - cg.ch/2;
+  if (cg.Input.cursor.hold.any && cg.Input.lastCursorType===ChoreoGraph.Input.TOUCH&&!Player.disableUserMovement) {
+    if (cg.Input.buttons.joystick.hovered) {
+      let dx = (cg.Input.buttons.joystick.hoveredX-0.5)*5.5;
+      let dy = (cg.Input.buttons.joystick.hoveredY-0.5)*5.5;
+      if (dx>0) { dx = Math.min(dx,1); } else if (dx<0) { dx = Math.max(dx,-1); }
+      if (dy>0) { dy = Math.min(dy,1); } else if (dy<0) { dy = Math.max(dy,-1); }
+      movementVector = [dx, dy];
     }
-    if (movementVector[0]!=0||movementVector[1]) { moving(); }
+    let magnitude = Math.sqrt(movementVector[0]*movementVector[0] + movementVector[1]*movementVector[1]);
+    if (magnitude > 1) {
+      movementVector[0] /= magnitude;
+      movementVector[1] /= magnitude;
+    }
+    if (movementVector[0]!=0||movementVector[1]!=0) { moving(); }
+  } else if (!Player.disableUserMovement) {
+    if (onTitleScreen||interface.pause) { return; }
+    cg.graphics.joystick.dir = [0,0];
+    movementVector = cg.Input.getActionNormalisedVector("up","down","left","right");
+    if (movementVector[0]!=0||movementVector[1]!=0) { moving(); }
   } else {
-    let dx = Player.targetLoc[0]-Player.Transform.x;
-    let dy = Player.targetLoc[1]-Player.Transform.y;
+    let dx = Player.targetLoc[0]-Player.transform.x;
+    let dy = Player.targetLoc[1]-Player.transform.y;
     let magnitude = Math.sqrt(dx*dx+dy*dy);
     movementSpeed = Math.min(movementSpeed,magnitude*3);
     if (magnitude>1.5) {
@@ -450,24 +501,24 @@ Player.movement = function() {
       if (Player.targetDir!=null) {
         let newAnimation = null;
         if (Player.targetDir=="east") {
-          newAnimation = Player.penAnim.idleEast;
+          newAnimation = cg.Animation.animations.idleEast;
         } else if (Player.targetDir=="west") {
-          newAnimation = Player.penAnim.idleWest;
+          newAnimation = cg.Animation.animations.idleWest;
         } else if (Player.targetDir=="south") {
-          newAnimation = Player.penAnim.idleSouth;
+          newAnimation = cg.Animation.animations.idleSouth;
         } else if (Player.targetDir=="north") {
-          newAnimation = Player.penAnim.idleNorth;
+          newAnimation = cg.Animation.animations.idleNorth;
         } else if (Player.targetDir=="southEast") {
-          newAnimation = Player.penAnim.idleSouthEast;
+          newAnimation = cg.Animation.animations.idleSouthEast;
         } else if (Player.targetDir=="northEast") {
-          newAnimation = Player.penAnim.idleNorthEast;
+          newAnimation = cg.Animation.animations.idleNorthEast;
         } else if (Player.targetDir=="southEast") {
-          newAnimation = Player.penAnim.idleSouthWest;
+          newAnimation = cg.Animation.animations.idleSouthWest;
         } else if (Player.targetDir=="northEast") {
-          newAnimation = Player.penAnim.idleNorthWest;
+          newAnimation = cg.Animation.animations.idleNorthWest;
         }
-        if (newAnimation!=null&&newAnimation.id!=Player.Animator.anim.id) {
-          Player.Animator.anim = newAnimation;
+        if (newAnimation!=null&&newAnimation.id!=Player.Animator.animation.id) {
+          Player.Animator.animation = newAnimation;
           Player.Animator.reset();
         }
       }
@@ -476,17 +527,16 @@ Player.movement = function() {
       }
     }
   }
+  cg.graphics.joystick.dir = movementVector;
   let magnitude = Math.sqrt(movementVector[0]*movementVector[0]+movementVector[1]*movementVector[1]);
   let aimVector = [movementVector[0]/magnitude,movementVector[1]/magnitude];
   if (magnitude>0) {
-    movementVector[0] = movementVector[0]/magnitude*movementSpeed;
-    movementVector[1] = (movementVector[1]/magnitude)*movementSpeed;
-    rb.xv = movementVector[0];
-    rb.yv = movementVector[1];
+    rb.xv = movementVector[0] * movementSpeed;
+    rb.yv = movementVector[1] * movementSpeed;
     setWalkingAnimations(aimVector,Player);
     if (cg.clock-Player.lastFootstepSound>Player.footstepInterval) {
       if (Math.random()>0.6) {
-        ChoreoGraph.AudioController.start("footstep"+Math.floor(Math.random()*6),0,0,0.08);
+        cg.Audio.sounds["footstep"+Math.floor(Math.random()*6)].play({volume:0.08});
       }
       Player.lastFootstepSound = cg.clock;
     }
@@ -495,8 +545,6 @@ Player.movement = function() {
     if (currentVelocity<10) {
       setIdleAnimations(Player,true);
     }
-    rb.xv *= Math.min(Math.max(0.05*cg.timeDelta,0),1);
-    rb.yv *= Math.min(Math.max(0.05*cg.timeDelta,0),1);
     if (Math.abs(rb.xv)<0.0001) {
       rb.xv = 0;
     }
@@ -511,73 +559,81 @@ function setWalkingAnimations(aimVector,penguin) {
   let absX = Math.abs(aimVector[0]);
   let absY = Math.abs(aimVector[1]);
   if (aimVector[0]>0.4&&aimVector[1]>0.4) {
-    newAnimation = penguin.penAnim.walkSouthEast;
+    newAnimation = cg.Animation.animations.walkSouthEast;
   } else if (aimVector[0]>0.4&&aimVector[1]<-0.4) {
-    newAnimation = penguin.penAnim.walkNorthEast;
+    newAnimation = cg.Animation.animations.walkNorthEast;
   } else if (aimVector[0]<-0.4&&aimVector[1]>0.4) {
-    newAnimation = penguin.penAnim.walkSouthWest;
+    newAnimation = cg.Animation.animations.walkSouthWest;
   } else if (aimVector[0]<-0.4&&aimVector[1]<-0.4) {
-    newAnimation = penguin.penAnim.walkNorthWest;
+    newAnimation = cg.Animation.animations.walkNorthWest;
   } else if (absX>absY&&aimVector[0]>0) {
-    newAnimation = penguin.penAnim.walkEast;
+    newAnimation = cg.Animation.animations.walkEast;
   } else if (absX>absY&&aimVector[0]<0) {
-    newAnimation = penguin.penAnim.walkWest;
+    newAnimation = cg.Animation.animations.walkWest;
   } else if (absX<absY&&aimVector[1]>0) {
-    newAnimation = penguin.penAnim.walkSouth;
+    newAnimation = cg.Animation.animations.walkSouth;
   } else if (absX<absY&&aimVector[1]<0) {
-    newAnimation = penguin.penAnim.walkNorth;
+    newAnimation = cg.Animation.animations.walkNorth;
   }
-  if (newAnimation.id!=penguin.Animator.anim.id&&newAnimation!=null) {
-    penguin.Animator.anim = newAnimation;
+  if (newAnimation.id!=penguin.Animator.animation.id&&newAnimation!=null) {
+    penguin.Graphic.transform.flipX = penFrames[penAnimations[newAnimation.id][0]][1];
+    penguin.Animator.animation = newAnimation;
     penguin.Animator.reset();
+    penguin.Animator.loop = true;
   }
   penguin.nextDharntzTime = cg.clock + 10000 + Math.random()*20000;
 }
 
 function setIdleAnimations(penguin,isPlayer=false) {
+  let oldAnimation = penguin.Animator.animation;
   let newAnimation = null;
-  if (penguin.Animator.anim.id==penguin.penAnim.walkEast.id) {
-    newAnimation = penguin.penAnim.idleEast;
-  } else if (penguin.Animator.anim.id==penguin.penAnim.walkWest.id) {
-    newAnimation = penguin.penAnim.idleWest;
-  } else if (penguin.Animator.anim.id==penguin.penAnim.walkSouth.id) {
-    newAnimation = penguin.penAnim.idleSouth;
-  } else if (penguin.Animator.anim.id==penguin.penAnim.walkNorth.id) {
-    newAnimation = penguin.penAnim.idleNorth;
-  } else if (penguin.Animator.anim.id==penguin.penAnim.walkSouthEast.id) {
-    newAnimation = penguin.penAnim.idleSouthEast;
-  } else if (penguin.Animator.anim.id==penguin.penAnim.walkNorthEast.id) {
-    newAnimation = penguin.penAnim.idleNorthEast;
-  } else if (penguin.Animator.anim.id==penguin.penAnim.walkSouthWest.id) {
-    newAnimation = penguin.penAnim.idleSouthWest;
-  } else if (penguin.Animator.anim.id==penguin.penAnim.walkNorthWest.id) {
-    newAnimation = penguin.penAnim.idleNorthWest;
+  if (oldAnimation.id==cg.Animation.animations.walkEast.id) {
+    newAnimation = cg.Animation.animations.idleEast;
+  } else if (oldAnimation.id==cg.Animation.animations.walkWest.id) {
+    newAnimation = cg.Animation.animations.idleWest;
+  } else if (oldAnimation.id==cg.Animation.animations.walkSouth.id) {
+    newAnimation = cg.Animation.animations.idleSouth;
+  } else if (oldAnimation.id==cg.Animation.animations.walkNorth.id) {
+    newAnimation = cg.Animation.animations.idleNorth;
+  } else if (oldAnimation.id==cg.Animation.animations.walkSouthEast.id) {
+    newAnimation = cg.Animation.animations.idleSouthEast;
+  } else if (oldAnimation.id==cg.Animation.animations.walkNorthEast.id) {
+    newAnimation = cg.Animation.animations.idleNorthEast;
+  } else if (oldAnimation.id==cg.Animation.animations.walkSouthWest.id) {
+    newAnimation = cg.Animation.animations.idleSouthWest;
+  } else if (oldAnimation.id==cg.Animation.animations.walkNorthWest.id) {
+    newAnimation = cg.Animation.animations.idleNorthWest;
   }
-  
+
   if (isPlayer) {
-    if (penguin.Animator.anim.id==penguin.penAnim.idleSouth.id&&(cg.clock-penguin.blinkTime-2000)/15000>penguin.nextBlink) {
-      newAnimation = penguin.penAnim.idleSouthBlink;
+    if (oldAnimation.id=="dharntz"&&penguin.Animator.playing==false) {
+      newAnimation = cg.Animation.animations.idleSouth;
+    } else if (oldAnimation.id=="idleSouth"&&(cg.clock-penguin.blinkTime-2000)/15000>penguin.nextBlink) {
+      newAnimation = cg.Animation.animations.idleSouthBlink;
       penguin.blinkTime = cg.clock;
       penguin.nextBlink = Math.random();
-    } else if (penguin.Animator.anim.id==penguin.penAnim.idleSouthBlink.id&&cg.clock-penguin.blinkTime>100) {
-      newAnimation = penguin.penAnim.idleSouth;
+    } else if (oldAnimation.id=="idleSouthBlink"&&cg.clock-penguin.blinkTime>100) {
+      newAnimation = cg.Animation.animations.idleSouth;
     }
     if (penguin.fishingLine.isFishing) {
-      newAnimation = penguin.penAnim.fishing;
+      newAnimation = cg.Animation.animations.fishing;
     }
   }
   if (penguin.nextDharntzTime==undefined) {
     penguin.nextDharntzTime = cg.clock + 10000 + Math.random()*20000;
   } else if (penguin.nextDharntzTime<cg.clock) {
     if (Player.fishingLine.isFishing==false) {
-      newAnimation = penguin.penAnim.dharntz;
+      penguin.Animator.loop = false;
+      newAnimation = cg.Animation.animations.dharntz;
       if (isPlayer) { cg.graphics.achievements.progress("dharntz",1); }
       penguin.Animator.reset();
     }
     penguin.nextDharntzTime = cg.clock + 10000 + Math.random()*20000;
   }
-  if (newAnimation!=null&&newAnimation.id!=penguin.Animator.anim.id) {
-    penguin.Animator.anim = newAnimation;
+  if (newAnimation!=null&&newAnimation.id!=penguin.Animator.animation.id) {
+    penguin.Animator.paused = false;
+    penguin.Animator.loop = newAnimation.id !== "dharntz";
+    penguin.Animator.animation = newAnimation;
     penguin.Animator.reset();
   }
 }

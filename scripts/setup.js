@@ -1,16 +1,43 @@
-var cg = ChoreoGraph.instantiate(document.getElementsByTagName("canvas")[0],{
-  parentElementId : "full",
-  levels : 5,
-  background : "#fafafa",
-  useCamera : true,
-  animation : {
-    consistentSpeedDefault : false,
-    autoFacingDefault : true,
-    persistentValuesDefault : true
+const cg = ChoreoGraph.instantiate({
+  core : {
+    baseImagePath : "images/",
+    imageSmoothingEnabled : false,
+    inactiveTime : 100,
+    debugCGScale : 0.5
   },
-  preventDefault : ["space","up","down","left","right","tab"],
+  input : {
+    preventSingleTouch : true,
+    preventTouchScrolling : true,
+    preventDefaultKeys : ["up","down","left","right","space"]
+  },
+  audio : {
+    baseAudioPath : "audio/",
+  }
 });
 
+cg.createCamera({
+  scaleMode : "maximum",
+  size : 600,
+  transformInit : {x:2390}
+},"main")
+.addScene(cg.createScene({},"main"));
+
+cg.scenes.main.createItem("collection",{},"background");
+cg.scenes.main.createItem("collection",{},"props");
+cg.scenes.main.createItem("collection",{},"entities");
+cg.scenes.main.createItem("collection",{},"ui");
+
+cg.createCanvas({element:document.getElementsByTagName("canvas")[0],
+  background : "#fafafa"
+},"main")
+.resizeWithSelf()
+.setCamera(cg.cameras.main);
+
+cg.loadChecks.push(()=>{
+  cg.canvases.main.c.font = "1px Lilita";
+  cg.canvases.main.c.fillText("Hello",-100,-100);
+  let loaded = document.fonts.check("1px Lilita");
+  return ["lilita",loaded,loaded,1];
+})
+
 let ssg = 16; // Spritesheet Grid Size
-let showCollectText = false;
-cg.preventSingleTouch = true;

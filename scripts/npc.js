@@ -4,25 +4,41 @@ function createNPC(x,y) {
   x += Math.random()/2;
   y += Math.random()/2;
   let id = "npc_"+npcs.length;
-  let newNPC = cg.createObject({id:id,stopNPC:true,x:x,y:y});
-  newNPC.penAnim = createPenguinGraphicsPackage();
-  let firstFrame = newNPC.penAnim.idleSouth.data[0][1];
-  newNPC.attach("Graphic",{level:2,graphic:firstFrame,master:true})
-  .attach("Animator",{anim:newNPC.penAnim.idleSouth})
-  .attach("Collider",{collider:cg.createCollider({type:"circle",id:id+"_collider",radius:10,groups:[0],master:true,collide:function(collider){
-    this.object.atTarget = true;
-    this.object.lastTargetArriveTime = cg.clock;
-  }}),oy:5})
-  .attach("RigidBody",{gravity:0,useColliderForPhysics:true})
-  .attach("Script",{updateScript:function(object){
+  let newNPC = cg.createObject({atTarget:false,stopNPC:true,lastTouchedPlayer:-Infinity,transformInit:{x:x,y:y}},id);
+  let firstFrame = cg.Animation.animations.idleSouth.data[1][2];
+  newNPC.attach("Graphic",{collection:"entities",graphic:firstFrame,master:true})
+  .attach("Animator",{animation:cg.Animation.animations.idleSouth})
+  .attach("RigidBody",{
+    gravity : 0,
+    mass : 2,
+    collider:cg.Physics.createCollider({
+    type:"circle",
+    radius : 10,
+    groups : [0],
+    transformInit : {oy:5},
+    object : newNPC,
+    collide : (collided,_b,self) => {
+      if (collided.id==="playerCollider") {
+        self.object.lastTouchedPlayer = cg.clock;
+      }
+      if (collided.static) {
+        if (cg.clock - self.object.lastTouchedPlayer < 1000) {
+          cg.graphics.achievements.progress("push",1);
+        }
+      }
+      self.object.atTarget = true;
+      self.object.lastTargetArriveTime = cg.clock;
+    }})})
+  .attach("Script",{
+    updateScript : (object) => {
     if (cg.ready==false) { return; }
     if (object.atTarget) {
       setIdleAnimations(object);
       if (object.lastTargetArriveTime + 5000 < cg.clock) {
         let ox = Math.floor(Math.random()*160)-80;
         let oy = Math.floor(Math.random()*160)-80;
-        let x = object.Transform.x + ox;
-        let y = object.Transform.y + oy;
+        let x = object.transform.x + ox;
+        let y = object.transform.y + oy;
         object.targetLoc = [x,y];
         object.atTarget = false;
         object.lastTargetDepartTime = cg.clock;
@@ -32,8 +48,8 @@ function createNPC(x,y) {
         object.atTarget = true;
         object.lastTargetArriveTime = cg.clock;
       }
-      let x = object.Transform.x;
-      let y = object.Transform.y;
+      let x = object.transform.x;
+      let y = object.transform.y;
       let targetX = object.targetLoc[0];
       let targetY = object.targetLoc[1];
       let dist = Math.sqrt(Math.pow(targetX-x,2)+Math.pow(targetY-y,2));
@@ -62,23 +78,16 @@ function createNPC(x,y) {
   newNPC.lastTargetDepartTime = 0;
   newNPC.atTarget = false;
   npcs.push(newNPC);
+  cg.scenes.main.addObject(newNPC);
 }
 
 createNPC(-30,16*8);
 createNPC(70,16*20);
 
-// createNPC(30,16*5);
-// createNPC(-40,16*5.5);
-// createNPC(50,16*6);
-// createNPC(-60,16*6.5);
-// createNPC(70,16*7);
-// createNPC(-80,16*7.5);
-// createNPC(90,16*8);
-
-createNPC(2450,-27);
+createNPC(2600,-27);
 createNPC(2486,5);
 createNPC(2547,-22);
-createNPC(2504,-45);
+createNPC(2504,-35);
 
 for (let i=0;i<20;i++) { createNPC(400,-360); }
 for (let i=0;i<20;i++) { createNPC(-260,-490); }
