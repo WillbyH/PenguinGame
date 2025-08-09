@@ -970,7 +970,7 @@ cg.Input.createButton({
     cg.objects.interface.touchControls.graphic.mapHover = false;
   },
   down : () => {
-    cg.settings.input.callbacks.keyDown("m");
+    cg.callbacks.input.keyDown[0]("m");
   }
 },"mapButton");
 
@@ -993,7 +993,7 @@ cg.Input.createButton({
     cg.objects.interface.touchControls.graphic.eInteractHover = false;
   },
   down : () => {
-    cg.settings.input.callbacks.keyDown("e");
+    cg.callbacks.input.keyDown[0]("e");
   }
 },"EInteractButton");
 

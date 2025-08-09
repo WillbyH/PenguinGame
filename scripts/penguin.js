@@ -97,7 +97,7 @@ cg.callbacks.listen("core","predraw",function(cg) {
 });
 cg.callbacks.listen("core","process",function(cg) {
   if (tileMapsLoaded<2) {
-    cg.settings.core.callbacks.loadingLoop();
+    cg.callbacks.core.loading[0]();
   }
 });
 
