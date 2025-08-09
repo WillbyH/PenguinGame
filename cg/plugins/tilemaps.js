@@ -99,12 +99,12 @@ ChoreoGraph.plugin({
       };
     };
 
-    TilemapLayer = class TilemapLayer {
+    TilemapLayer = class cgTilemapLayer {
       name = "Unnamed Layer";
       visible = true;
     };
 
-    Chunk = class Chunk {
+    Chunk = class cgTilemapChunk {
       tilemap = null;
       x = 0;
       y = 0;
@@ -117,9 +117,9 @@ ChoreoGraph.plugin({
         this.tilemap = tilemap;
       };
 
-      createLayer(layerInit={}) {
-        let newLayer = new ChoreoGraph.Tilemaps.ChunkLayer(this);
-        ChoreoGraph.applyAttributes(newLayer,layerInit);
+      createLayer(chunkLayerInit={},layerIndex=null) {
+        let newLayer = new ChoreoGraph.Tilemaps.ChunkLayer(this,layerIndex);
+        ChoreoGraph.applyAttributes(newLayer,chunkLayerInit);
         if (newLayer.tiles==undefined) { newLayer.tiles = []; }
         for (let tileId of newLayer.tiles) {
           if (tileId==null) { continue; }
@@ -146,7 +146,11 @@ ChoreoGraph.plugin({
             awaitImage(this,tile.image);
           }
         }
-        this.layers.push(newLayer);
+        if (layerIndex!==null) {
+          this.layers[layerIndex] = newLayer;
+        } else {
+          this.layers.push(newLayer);
+        }
         if (this.tilemap.cg.settings.tilemaps.preCacheChunkLayers&&this.tilemap.cache) {
           newLayer.createCache();
         }
@@ -154,18 +158,18 @@ ChoreoGraph.plugin({
       };
     };
 
-    ChunkLayer = class ChunkLayer {
+    ChunkLayer = class cgTilemapChunkLayer {
       tilemap = null;
       index = 0;
       chunk = null;
       cache = null;
       tiles = [];
 
-      constructor(chunk) {
+      constructor(chunk,layerOverride=null) {
         if (chunk==undefined) { console.warn("ChunkLayer requires a Chunk"); return; }
         this.chunk = chunk;
         this.tilemap = chunk.tilemap;
-        this.index = chunk.layers.length;
+        this.index = layerOverride || chunk.layers.length;
       }
 
       createCache() {
@@ -179,7 +183,7 @@ ChoreoGraph.plugin({
         } else {
           if (this.tilemap.cache) {
             this.createCache();
-            this.drawFromCache(c);
+            if (this.cache!==null) { this.drawFromCache(c); }
           } else {
             this.drawFromTiles(c);
           }
@@ -209,7 +213,7 @@ ChoreoGraph.plugin({
       };
     };
 
-    CachedChunkLayer = class CachedChunkLayer {
+    CachedChunkLayer = class cgTilemapCachedChunkLayer {
       canvas = null;
       c = null;
       animatedTiles = [];
@@ -234,12 +238,11 @@ ChoreoGraph.plugin({
           if (this.chunkLayer.tiles[i]==null) { continue; }
           let tile = cg.Tilemaps.tiles[this.chunkLayer.tiles[i]];
           if (tile.animated) {
-            let animatedTileData = {
+            this.animatedTiles.push({
               tile : tile,
               x : i % chunk.width,
               y : Math.floor(i / chunk.width)
-            }
-            this.animatedTiles.push(animatedTileData);
+            });
             continue;
           }
           if (!tile.image.ready) {
@@ -284,7 +287,7 @@ ChoreoGraph.plugin({
       };
     };
 
-    Tile = class cgTile {
+    Tile = class cgTilemapTile {
       image = null;
       flipX = false;
       flipY = false;
@@ -318,7 +321,7 @@ ChoreoGraph.plugin({
       }
     };
 
-    AnimatedTile = class AnimatedTile {
+    AnimatedTile = class cgTilemapAnimatedTile {
       frames = [];
       totalDuration = 0;
 
@@ -369,7 +372,7 @@ ChoreoGraph.plugin({
       };
     };
 
-    AnimatedTileFrame = class AnimatedTileFrame {
+    AnimatedTileFrame = class cgTilemapAnimatedTileFrame {
       image = null;
       duration = 0;
       flipX = false;
@@ -381,7 +384,7 @@ ChoreoGraph.plugin({
       height = 0;
     };
 
-    instanceObject = class cgInstanceTilemaps {
+    InstanceObject = class cgInstanceTilemaps {
       tilemaps = {};
       tiles = {};
 
@@ -429,7 +432,7 @@ ChoreoGraph.plugin({
   },
 
   instanceConnect(cg) {
-    cg.Tilemaps = new ChoreoGraph.Tilemaps.instanceObject(cg);
+    cg.Tilemaps = new ChoreoGraph.Tilemaps.InstanceObject(cg);
     cg.keys.tilemaps = [];
     cg.keys.tiles = [];
 
@@ -438,7 +441,7 @@ ChoreoGraph.plugin({
       appendCanvases : false
     });
 
-    cg.graphicTypes.tilemap = new class TilemapGraphic {
+    cg.graphicTypes.tilemap = {
       setup(init,cg) {
         this.manualTransform = true;
         this.tilemap = null;
@@ -447,7 +450,6 @@ ChoreoGraph.plugin({
         this.debug = false;
         this.useDrawBuffer = true;
 
-        this.previousChunksToBuffer = [];
         this.drawBuffer = document.createElement("canvas");
         this.drawBufferContext = this.drawBuffer.getContext("2d",{alpha:true});
         this.previousBufferWidth = 0;
@@ -458,7 +460,7 @@ ChoreoGraph.plugin({
         }
 
         if (init.imageSmoothingEnabled===undefined) { init.imageSmoothingEnabled = false; }
-      };
+      },
       draw(canvas,transform) {
         let go = transform.o;
         if (go==0) { return; }
@@ -481,10 +483,10 @@ ChoreoGraph.plugin({
 
         let bufferRequiresUpdate = false;
         let chunksToBuffer = [];
-        let xMin = 0;
-        let yMin = 0;
-        let xMax = 0;
-        let yMax = 0;
+        let xMin = null;
+        let yMin = null;
+        let xMax = null;
+        let yMax = null;
 
         let debugChunks = [];
 
@@ -520,18 +522,15 @@ ChoreoGraph.plugin({
                 if (chunkLayer==undefined||layer.visible==false||((this.visibleLayers.length>0&&!this.visibleLayers.includes(layer.name))&&(this.visibleLayers.length!==0))) {
                   continue;
                 }
-                xMin = Math.min(xMin,chunkX);
-                yMin = Math.min(yMin,chunkY);
-                xMax = Math.max(xMax,chunkX + chunkWidth);
-                yMax = Math.max(yMax,chunkY + chunkHeight);
+                xMin = xMin === null ? chunkX : Math.min(xMin,chunkX);
+                yMin = yMin === null ? chunkY : Math.min(yMin,chunkY);
+                xMax = xMax === null ? chunkX + chunkWidth : Math.max(xMax,chunkX + chunkWidth);
+                yMax = yMax === null ? chunkY + chunkHeight : Math.max(yMax,chunkY + chunkHeight);
 
                 if (chunksToBuffer[layerIndex]==undefined) {
                   chunksToBuffer[layerIndex] = [];
                 }
 
-                if (this.previousChunksToBuffer[layerIndex]==undefined||!this.previousChunksToBuffer[layerIndex].includes(chunkLayer)) {
-                  bufferRequiresUpdate = true;
-                }
                 if (chunkLayer.cache!==null&&chunkLayer.cache.animatedTiles.length>0) {
                   bufferRequiresUpdate = true;
                 }
@@ -593,9 +592,9 @@ ChoreoGraph.plugin({
                 lc.restore();
               }
             }
-
-            c.drawImage(this.drawBuffer,xMin,yMin,bufferWidth,bufferHeight)
           }
+
+          c.drawImage(this.drawBuffer,xMin,yMin,bufferWidth,bufferHeight)
         }
 
         for (let debugChunk of debugChunks) {
@@ -621,7 +620,7 @@ ChoreoGraph.plugin({
             c.stroke();
           }
         }
-      };
+      }
     };
   }
 });

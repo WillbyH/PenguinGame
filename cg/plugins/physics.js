@@ -10,6 +10,7 @@ ChoreoGraph.plugin({
       static = false; // An intent that this collider will never move or change shape
       manual = false; // Excludes this from collision orders
       groups = [0];
+      scene = null;
 
       transform = null;
       collided = false;
@@ -22,6 +23,8 @@ ChoreoGraph.plugin({
       enter = null;
       exit = null;
       collide = null;
+
+      _deleteAfterProcessing = false;
 
       constructor(colliderInit,cg) {
         this.cg = cg;
@@ -45,12 +48,8 @@ ChoreoGraph.plugin({
       };
 
       delete() {
-        ChoreoGraph.id.release(this.id);
-        this.cg.keys.colliders = this.cg.keys.colliders.filter(id => id !== this.id);
-        delete this.cg.Physics.colliders[this.id];
-        if (this.cg.ready) {
-          this.cg.Physics.calibrateCollisionOrder();
-        }
+        this._deleteAfterProcessing = true;
+        this.cg.Physics.hasPendingColliderDeletions = true;
       };
     };
 
@@ -187,7 +186,7 @@ ChoreoGraph.plugin({
       }
     };
 
-    instanceObject = class cgInstancePhysics {
+    InstanceObject = class cgInstancePhysics {
       colliders = {};
       hasActivatedDebugLoop = false;
       triggerCollisionOrder = [];
@@ -195,6 +194,8 @@ ChoreoGraph.plugin({
 
       iterationNumber = 0;
       collisionChecks = 0;
+
+      hasPendingColliderDeletions = false;
 
       constructor(cg) {
         this.cg = cg;
@@ -230,6 +231,7 @@ ChoreoGraph.plugin({
             let collider = this.cg.Physics.colliders[mId];
             let comparison = this.cg.Physics.colliders[cId];
             if (collider.static && comparison.static) { continue; } // Don't compare two static colliders
+            if (collider.scene !== null && comparison.scene !== null && collider.scene !== comparison.scene) { continue; } // Don't compare colliders in different scenes
             let compatible = Object.keys(ChoreoGraph.Physics.colliderCompatability[collider.type]).includes(comparison.type);
             if (!compatible) { continue; } // Don't compare incompatible colliders
             let sharesAGroup = false;
@@ -276,16 +278,20 @@ ChoreoGraph.plugin({
             console.warn("Collider type " + newCollider.type + " is not physics capable.",id);
           }
         }
+        if (newCollider.trigger===false && (typeof colliderInit.enter === "function" || typeof colliderInit.exit === "function")) {
+          console.warn("Only trigger colliders can use enter and exit callbacks for collider:",id,colliderInit.enter,colliderInit.exit);
+        }
         this.colliders[id] = newCollider;
         this.cg.keys.colliders.push(id);
-        if (cg.ready) {
+        if (this.cg.ready) {
           this.cg.Physics.calibrateCollisionOrder();
         }
         return newCollider;
       };
 
-      createCollidersFromTilemap(tilemap,layerIndex=0,targetTileId=null,xo=0,yo=0,groups=[0]) {
+      createCollidersFromTilemap(tilemap,layerIndex=0,targetTileId=null,scene=null,groups=[0]) {
         if (tilemap===undefined) { console.warn("No Tilemap provided in createCollidersFromTileMap"); return; }
+
         let pool = [];
         for (let chunk of tilemap.chunks) {
           if (chunk.layers[layerIndex]==undefined) { continue; }
@@ -377,7 +383,8 @@ ChoreoGraph.plugin({
             width : tilemap.tileWidth * biggestWidth,
             height : tilemap.tileHeight * biggestHeight,
             transformInit : { x: cx, y: cy },
-            groups : groups
+            groups : groups,
+            scene : scene
           }, colliderGroupName + "_" + colliderNumber);
           colliderNumber++;
         }
@@ -651,7 +658,7 @@ ChoreoGraph.plugin({
       }
     }
 
-    processCollision(colliderA, colliderB, getVector) {
+    processCollision(colliderA, colliderB, getVector=true, collideCallbacks=true) {
       const compatability = ChoreoGraph.Physics.colliderCompatability[colliderA.type][colliderB.type];
       const detectionFunction = ChoreoGraph.Physics.detections[compatability[0]];
       const flip = compatability[1];
@@ -664,8 +671,10 @@ ChoreoGraph.plugin({
       if (collided) {
         colliderA.collided = true;
         colliderB.collided = true;
-        if (colliderA.collide !== null) { colliderA.collide(colliderB, vector, colliderA); }
-        if (colliderB.collide !== null) { colliderB.collide(colliderA, vector, colliderB); }
+        if (collideCallbacks) {
+          if (colliderA.collide !== null) { colliderA.collide(colliderA, colliderB, vector); }
+          if (colliderB.collide !== null) { colliderB.collide(colliderB, colliderA, vector); }
+        }
       } else {
         if (colliderA.collidedFrame !== ChoreoGraph.frame) { colliderA.collided = false; }
         if (colliderB.collidedFrame !== ChoreoGraph.frame) { colliderB.collided = false; }
@@ -676,15 +685,25 @@ ChoreoGraph.plugin({
     triggerProcessingLoop(cg) {
       cg.Physics.iterationNumber = 0;
       cg.Physics.collisionChecks = 0;
+      const onlyOneScene = cg.keys.scenes.length === 1;
 
       for (let pairs of cg.Physics.triggerCollisionOrder) {
         const colliderA = pairs[0];
         const colliderB = pairs[1];
+        if (!onlyOneScene) {
+          let scenesActive = true;
+          for (let canvasId of cg.keys.canvases) {
+            const canvas = cg.canvases[canvasId];
+            if (colliderA.scene!==null&&!canvas.camera.scenes.includes(colliderA.scene)) { scenesActive = false; break; }
+            if (colliderB.scene!==null&&!canvas.camera.scenes.includes(colliderB.scene)) { scenesActive = false; break; }
+          }
+          if (!scenesActive) { continue; }
+        }
 
         if (colliderA.collidedFrame !== ChoreoGraph.frame) { colliderA.collisions.length = 0; }
         if (colliderB.collidedFrame !== ChoreoGraph.frame) { colliderB.collisions.length = 0; }
 
-        const [collided] = ChoreoGraph.Physics.processCollision(colliderA, colliderB, false);
+        const [collided] = ChoreoGraph.Physics.processCollision(colliderA, colliderB, false, false);
         if (collided) {
           colliderA.collided = true;
           colliderB.collided = true;
@@ -713,7 +732,7 @@ ChoreoGraph.plugin({
           if (!whitelist.includes(colliderA.id) && !whitelist.includes(colliderB.id)) { continue; }
         }
 
-        const [collided,vector,flip] = ChoreoGraph.Physics.processCollision(colliderA, colliderB, true);
+        const [collided,vector,flip] = ChoreoGraph.Physics.processCollision(colliderA, colliderB, true, true);
         cg.Physics.collisionChecks++;
 
         if (!collided) { continue; }
@@ -781,12 +800,12 @@ ChoreoGraph.plugin({
             accounted.push(comparison);
             if (collider.memory.includes(comparison)) {
               if (collider.collide!==null) {
-                collider.collide(comparison);
+                collider.collide(collider,comparison,null);
               }
               continue;
             } else {
               if (collider.enter!==null) {
-                collider.enter(comparison,collider);
+                collider.enter(collider,comparison);
               }
               collider.memory.push(comparison);
             }
@@ -794,12 +813,29 @@ ChoreoGraph.plugin({
           for (let comparison of collider.memory) {
             if (!accounted.includes(comparison)) {
               if (collider.exit!==null) {
-                collider.exit(comparison,collider);
+                collider.exit(collider,comparison);
               }
               collider.memory = collider.memory.filter(c => c.id !== comparison.id);
             }
           }
         }
+      }
+
+      if (cg.Physics.hasPendingColliderDeletions) {
+        for (let colliderId of cg.keys.colliders) {
+          let collider = cg.Physics.colliders[colliderId];
+          if (collider._deleteAfterProcessing) {
+            ChoreoGraph.id.release(collider.id);
+            delete cg.Physics.colliders[colliderId];
+          }
+        }
+        cg.keys.colliders = cg.keys.colliders.filter(id => id in cg.Physics.colliders);
+
+        if (cg.ready) {
+          cg.Physics.calibrateCollisionOrder();
+        }
+
+        cg.Physics.hasPendingColliderDeletions = false;
       }
     };
 
@@ -813,6 +849,7 @@ ChoreoGraph.plugin({
         for (let colliderId of cg.keys.colliders) {
           let collider = cg.Physics.colliders[colliderId];
           if (collider.transform===null) { continue; }
+          if (collider.scene!==null&&!canvas.camera.scenes.includes(collider.scene)) { continue; }
           c.save();
           let [cx,cy] = collider.getPosition();
           ChoreoGraph.transformContext(canvas.camera,cx,cy);
@@ -833,15 +870,16 @@ ChoreoGraph.plugin({
   },
 
   instanceConnect(cg) {
-    cg.Physics = new ChoreoGraph.Physics.instanceObject(cg);
+    cg.Physics = new ChoreoGraph.Physics.InstanceObject(cg);
     cg.keys.colliders = [];
 
-    cg.processLoops.push(ChoreoGraph.Physics.triggerProcessingLoop);
-    cg.predrawLoops.push(ChoreoGraph.Physics.physicsProcessingLoop);
+    cg.callbacks.listen("core","process",ChoreoGraph.Physics.triggerProcessingLoop);
+    cg.callbacks.listen("core","process",ChoreoGraph.Physics.physicsProcessingLoop);
 
     cg.attachSettings("physics",{
       maximumIterations : 10,
-      gravity : 9.8,
+      gravityX : 0,
+      gravityY : 9.8,
 
       debug : new class {
         style = {
@@ -861,7 +899,7 @@ ChoreoGraph.plugin({
           this.#active = value;
           if (value&&!this.#cg.Physics.hasActivatedDebugLoop) {
             this.#cg.Physics.hasActivatedDebugLoop = true;
-            this.#cg.debugLoops.push(ChoreoGraph.Physics.physicsDebugLoop);
+            this.#cg.callbacks.listen("core","debug",ChoreoGraph.Physics.physicsDebugLoop);
           }
         }
         get active() { return this.#active; }
@@ -881,24 +919,30 @@ ChoreoGraph.plugin({
   }
 });
 
-ChoreoGraph.ObjectComponents.RigidBody = class cgObjectRidigBody {
+ChoreoGraph.ObjectComponents.RigidBody = class cgObjectRigidBody {
   manifest = {
     type : "RigidBody",
     key : "RigidBody",
     master : true,
     functions : {
-      update : true
+      update : true,
+      delete : true
     }
   }
 
-  gravityScale = 0;
+  gravityScaleX = 0;
+  gravityScaleY = 0;
   xv = 0;
   yv = 0;
   collider = null;
   drag = 0;
+  dragX = null;
+  dragY = null;
   mass = 1;
   bounce = false;
   minimumVelocity = 0.00000001;
+
+  deleteColliderWithObject = false;
 
   constructor(componentInit,object) {
     ChoreoGraph.initObjectComponent(this,componentInit);
@@ -924,29 +968,53 @@ ChoreoGraph.ObjectComponents.RigidBody = class cgObjectRidigBody {
     if (this.collider === null) { return; }
     if (this.collider.static) { return; }
 
-    if (scene.cg.timeDelta>this.cg.settings.core.inactiveTime) {
+    if (scene.cg.timeSinceLastFrame>this.cg.settings.core.inactiveTime) {
       return
     }
 
     let timeDeltaSeconds = scene.cg.timeDelta / 1000;
-    this.yv += scene.cg.settings.physics.gravity * this.gravityScale * timeDeltaSeconds;
+    this.xv += scene.cg.settings.physics.gravityX * this.gravityScaleX * timeDeltaSeconds;
+    this.yv += scene.cg.settings.physics.gravityY * this.gravityScaleY * timeDeltaSeconds;
     let dx = this.xv * timeDeltaSeconds;
     let dy = this.yv * timeDeltaSeconds;
     this.collider.transform.parent.x += dx;
     this.collider.transform.parent.y += dy;
 
-    if (this.drag !== 0) {
-      const multiplier = 1-(this.drag * timeDeltaSeconds);
-      this.xv *= multiplier;
-      this.yv *= multiplier;
+    if (this.dragX === null && this.dragY === null) {
+      if (this.drag !== 0) {
+        const multiplier = 1-(this.drag * timeDeltaSeconds);
+        this.xv *= multiplier;
+        this.yv *= multiplier;
+      }
+    } else {
+      if (this.dragX !== 0) {
+        const multiplier = 1-(this.dragX * timeDeltaSeconds);
+        this.xv *= multiplier;
+      }
+      if (this.dragY !== 0) {
+        const multiplier = 1-(this.dragY * timeDeltaSeconds);
+        this.yv *= multiplier;
+      }
+    }
+
+    const onlyOneScene = scene.cg.keys.scenes.length === 1;
+
+    let relevantScenes = [];
+    if (!onlyOneScene) {
+      for (const camera of scene.cameras) {
+        for (const scene of camera.scenes) {
+          relevantScenes.push(scene);
+        }
+      }
     }
 
     let resolutions = [];
 
     for (let comparison of this.collider.affiliations) {
       if (comparison.trigger) { continue; }
-      const [collided,vector,flip] = ChoreoGraph.Physics.processCollision(this.collider, comparison, true);
-      cg.Physics.collisionChecks++;
+      if (onlyOneScene===false&&comparison.scene!=null&&!relevantScenes.includes(comparison.scene)) { continue; }
+      const [collided,vector,flip] = ChoreoGraph.Physics.processCollision(this.collider, comparison, true, true);
+      scene.cg.Physics.collisionChecks++;
 
       if (!collided) { continue; }
 
@@ -1072,5 +1140,11 @@ ChoreoGraph.ObjectComponents.RigidBody = class cgObjectRidigBody {
 
     if (Math.abs(this.xv) < this.minimumVelocity) { this.xv = 0; }
     if (Math.abs(this.yv) < this.minimumVelocity) { this.yv = 0; }
+  }
+
+  delete() {
+    if (this.deleteColliderWithObject) {
+      this.collider.delete();
+    }
   }
 };

@@ -3,14 +3,13 @@ ChoreoGraph.plugin({
   key : "Tiled",
   version : "1.1",
 
-  globalPackage : new class FMODConnector {
-    instanceObject = class cgInstanceTiledConnector {
+  globalPackage : new class TiledConnector {
+    InstanceObject = class cgInstanceTiledConnector {
       totalExternalTileSets = 0;
       totalExternalTileMaps = 0;
       loadedExternalTileSets = 0;
       loadedExternalTileMaps = 0;
       tileSets = {};
-      tileMaps = [];
 
       async importTileSetFromFile(dataUrl, callback=null) {
         this.totalExternalTileSets++;
@@ -249,6 +248,7 @@ ChoreoGraph.plugin({
 
         if (data.infinite) {
           // CREATE CHUNKS FROM DATA
+            let layerIndex = 0;
             for (let layer of data.layers) {
               if (layer.type !== "tilelayer") { continue; }
               tilemap.createLayer({
@@ -275,8 +275,9 @@ ChoreoGraph.plugin({
                 }
                 chunk.createLayer({
                   tiles : convertLayerData(chunkData.data)
-                });
+                },layerIndex);
               }
+              layerIndex++;
             }
         } else {
           if (importData.autoChunk===undefined) { importData.autoChunk = false; }
@@ -288,7 +289,7 @@ ChoreoGraph.plugin({
               tilemap.createChunkedLayer({
                 tiles : convertLayerData(layer.data),
                 chunkWidth : importData.chunkWidth,
-                chunkHeight : importData.chunkWidth,
+                chunkHeight : importData.chunkHeight,
                 totalWidth : data.width,
                 chunksOffsetX : importData.chunkOffsetX || 0,
                 chunksOffsetY : importData.chunkOffsetY || 0,
@@ -333,7 +334,7 @@ ChoreoGraph.plugin({
   },
 
   instanceConnect(cg) {
-    cg.Tiled = new ChoreoGraph.Tiled.instanceObject(cg);
+    cg.Tiled = new ChoreoGraph.Tiled.InstanceObject(cg);
     cg.Tiled.cg = cg;
     cg.loadChecks.push(ChoreoGraph.Tiled.tilesetLoadCheck);
     cg.loadChecks.push(ChoreoGraph.Tiled.tilemapLoadCheck);

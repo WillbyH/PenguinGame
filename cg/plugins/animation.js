@@ -4,7 +4,7 @@ ChoreoGraph.plugin({
   version : "1.0",
 
   globalPackage : new class cgAnimationPackage {
-    instanceObject = class cgAnimationInstancePackage {
+    InstanceObject = class cgAnimationInstancePackage {
       createAnimation(animationInit={},id=ChoreoGraph.id.get()) {
         if (this.cg.keys.animations.includes(id)) { id += "-" + ChoreoGraph.id.get(); }
         let newAnimation = new ChoreoGraph.Animation.Animation(animationInit);
@@ -58,9 +58,125 @@ ChoreoGraph.plugin({
         inElastic : function(t, s = 1.70158) { return t === 0 ? 0 : t === 1 ? 1 : -Math.pow(2, 10 * t - 10) * Math.sin((t * 10 - 10.75) * (2 * Math.PI) / s); },
         outElastic : function(t, s = 1.70158) { return t === 0 ? 0 : t === 1 ? 1 : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * (2 * Math.PI) / s) + 1; },
         inOutElastic : function(t, s = 1.70158) { return t === 0 ? 0 : t === 1 ? 1 : t < 0.5 ? -(Math.pow(2, 20 * t - 10) * Math.sin((20 * t - 11.125) * (2 * Math.PI) / s)) / 2 : (Math.pow(2, -20 * t + 10) * Math.sin((20 * t - 11.125) * (2 * Math.PI) / s)) / 2 + 1; },
-        inBounce : function(t) { return 1 - cg.Animation.easeFunctions.outBounce(1 - t); },
+        inBounce : function(t) { return 1 - ((1-t) < 4 / 11 ? (121 * (1-t) * (1-t)) / 16 : (1-t) < 8 / 11 ? (363 / 40) * (1-t) * (1-t) - (99 / 10) * (1-t) + 1 : (4356 / 361) * (1-t) * (1-t) - (35442 / 1805) * (1-t) + (16061 / 1805)); },
         outBounce : function(t) { return t < 4 / 11 ? (121 * t * t) / 16 : t < 8 / 11 ? (363 / 40) * t * t - (99 / 10) * t + 1 : (4356 / 361) * t * t - (35442 / 1805) * t + (16061 / 1805); },
-        inOutBounce : function(t) { return t < 0.5 ? cg.Animation.easeFunctions.inBounce(t * 2) / 2 : cg.Animation.easeFunctions.outBounce(t * 2 - 1) / 2 + 0.5; }
+        inOutBounce : function(t) { return t < 0.5 ? (1 - ((1-t*2) < 4 / 11 ? (121 * (1-t*2) * (1-t*2)) / 16 : (1-t*2) < 8 / 11 ? (363 / 40) * (1-t*2) * (1-t*2) - (99 / 10) * (1-t*2) + 1 : (4356 / 361) * (1-t*2) * (1-t*2) - (35442 / 1805) * (1-t*2) + (16061 / 1805))) / 2 : ((t*2-1) < 4 / 11 ? (121 * (t*2-1) * (t*2-1)) / 16 : (t*2-1) < 8 / 11 ? (363 / 40) * (t*2-1) * (t*2-1) - (99 / 10) * (t*2-1) + 1 : (4356 / 361) * (t*2-1) * (t*2-1) - (35442 / 1805) * (t*2-1) + (16061 / 1805)) / 2 + 0.5; }
+      };
+
+      rawPreprocessFunctions = {
+        // Make each time equivilant to a 1 pixel per 1 second speed multiplied by the consistentSpeed setting
+        consistentSpeed : function(animation) {
+          let cg = animation.cg.cg;
+          let xKey = null;
+          let yKey = null;
+          let timeKey = animation.getTimeKey();
+          for (let k=0;k<animation.keys.length;k++) {
+            let keySet = JSON.stringify(animation.keys[k].keySet);
+            if (keySet==JSON.stringify(cg.settings.animation.rawProcessing.xKey)) { xKey = k; }
+            if (keySet==JSON.stringify(cg.settings.animation.rawProcessing.yKey)) { yKey = k; }
+          }
+          if (xKey===null || yKey===null) { return; }
+          let lastX = null;
+          let lastY = null;
+          for (let part in animation.data) {
+            const frame = animation.data[part];
+            if (typeof frame[0] === "string") { continue; }
+            if (lastX==null) {
+              lastX = frame[xKey];
+              lastY = frame[yKey];
+              frame[timeKey] = 0;
+              continue;
+            }
+            if (frame[xKey]===undefined || frame[yKey]===undefined || frame[timeKey]!==undefined) { continue; }
+            const distance = Math.sqrt(Math.pow(frame[xKey]-lastX,2)+Math.pow(frame[yKey]-lastY,2));
+            if (distance==0) { continue; }
+            frame[timeKey] = distance / cg.settings.animation.rawProcessing.consistentSpeed;
+            lastX = frame[xKey];
+            lastY = frame[yKey];
+          }
+        },
+        // Automatically set the rotation based on the direction of movement
+        autoFacing : function(animation) {
+          let cg = animation.cg.cg;
+          let xKey = null;
+          let yKey = null;
+          let rKey = null;
+          for (let k=0;k<animation.keys.length;k++) {
+            let keySet = JSON.stringify(animation.keys[k].keySet);
+            if (keySet==JSON.stringify(cg.settings.animation.rawProcessing.xKey)) { xKey = k; }
+            if (keySet==JSON.stringify(cg.settings.animation.rawProcessing.yKey)) { yKey = k; }
+            if (keySet==JSON.stringify(cg.settings.animation.rawProcessing.rKey)) { rKey = k; }
+          }
+          if (xKey===null || yKey===null || rKey===null) { return; }
+          let lastX = null;
+          let lastY = null;
+          let oldAngle = 0;
+          let angleOffset = 0;
+          let firstPositionAwaitingRotation = true;
+          let firstPositionPart = null;
+          for (let part in animation.data) {
+            const frame = animation.data[part];
+            if (typeof frame[0] === "string") { continue; }
+            if (frame[xKey]===undefined || frame[yKey]===undefined || frame[rKey]!==undefined) { continue; }
+            if (lastX==null) {
+              lastX = frame[xKey];
+              lastY = frame[yKey];
+              firstPositionPart = part;
+              continue;
+            }
+            let newAngle = ChoreoGraph.Animation.twoPointsToAngle([lastX,lastY],[frame[xKey],frame[yKey]]);
+            newAngle += angleOffset;
+            if ((Math.abs(oldAngle-(newAngle+360)))<Math.abs(oldAngle-newAngle)) {
+              newAngle = newAngle+360;
+              angleOffset = angleOffset+360;
+            } else if (Math.abs(oldAngle-(newAngle-360))<Math.abs(oldAngle-newAngle)) {
+              newAngle = newAngle-360;
+              angleOffset = angleOffset-360;
+            }
+            frame[rKey] = newAngle;
+            oldAngle = newAngle;
+            lastX = frame[xKey];
+            lastY = frame[yKey];
+            if (firstPositionAwaitingRotation) {
+              firstPositionAwaitingRotation = false;
+              animation.data[firstPositionPart][rKey] = newAngle;
+            }
+          }
+        },
+        // Empty/undefined values will be filled with the last known value
+        persistentValues : function(animation) {
+          let lastValues = [];
+          for (let part in animation.data) {
+            const frame = animation.data[part];
+            if (typeof frame[0] === "string") { continue; }
+            if (lastValues.length==0) {
+              lastValues = frame.slice();
+              continue;
+            }
+            for (let i=0;i<frame.length;i++) {
+              if (frame[i]!==undefined) {
+                lastValues[i] = frame[i];
+              }
+            }
+            for (let i=0;i<lastValues.length;i++) {
+              if (frame[i]===undefined) {
+                frame[i] = lastValues[i];
+              }
+            }
+          }
+        },
+        // For each key with an undefined value set it to 0
+        setEmptyToZero : function(animation) {
+          const keyCount = animation.keys.length;
+          for (let frame of animation.data) {
+            if (typeof frame[0] === "string") { continue; }
+            for (let i=0;i<keyCount;i++) {
+              if (frame[i]===undefined) {
+                frame[i] = 0;
+              }
+            }
+          }
+        }
       };
 
       hasActivatedDebugLoop = false;
@@ -135,7 +251,6 @@ ChoreoGraph.plugin({
             ChoreoGraph.transformContext(canvas.camera);
 
             let c = canvas.c;
-
             let size = debugSettings.width/canvas.camera.cz*cg.settings.core.debugCGScale;
 
             c.lineWidth = size * cg.settings.core.debugCGScale;
@@ -209,17 +324,24 @@ ChoreoGraph.plugin({
       timeKey = null;
       ready = false;
 
-      loadRaw(data,keys) {
+      loadRaw(data,keys,preprocessingFunctions=[]) {
         this.data = data;
         this.keys = keys;
         this.timeKey = this.getTimeKey();
-        this.calculateDuration();
         if (this.data.length==0) {
           this.ready = false;
           return this;
         } else if (this.data.length<2) {
           this.data[1] = this.data[0];
         }
+        for (let functionName of preprocessingFunctions) {
+          if (this.cg.cg.Animation.rawPreprocessFunctions[functionName]) {
+            this.cg.cg.Animation.rawPreprocessFunctions[functionName](this);
+          } else {
+            console.warn("Animation preprocessing function",functionName,"does not exist");
+          }
+        }
+        this.calculateDuration();
         this.ready = true;
         return this;
       };
@@ -635,25 +757,10 @@ ChoreoGraph.plugin({
           let data = [];
           let previousPoint = null;
           let previousDisconnected = false;
-          let track = this;
           let cg = this.cg;
           let applyRotationNext = false;
           let previousRotation = 0;
           let overrotationOffset = 0;
-          function twoPointsToAngle(p1=[0,0], p2=[1,1]) {
-            let deltaY = (p1[1] - p2[1]);
-            let deltaX = (p2[0] - p1[0]);
-            let baseangle = Math.atan2(deltaY,deltaX)*180/Math.PI
-            // P1 IS FROM WHICH IS THE POINT THAT THE PATH STARTS ON
-            // P2 IS TO WHICH IS THE POINT THAT THE PATH ENDS ON
-            if (p1[1]<p2[1]) { // Top
-              return -baseangle+90;
-            } else if (p1[1]>p2[1]) { // Bottom
-              return 90-baseangle;
-            } else if (p1[1]==p2[1]) { // Intercept
-              return baseangle+90;
-            }
-          }
           function append(x,y) {
             let decimals = cg.settings.animation.genericDecimalRounding;
             x = Number(x.toFixed(decimals));
@@ -671,7 +778,7 @@ ChoreoGraph.plugin({
 
             let r = 0;
             if (previousPoint!=null) {
-              r = twoPointsToAngle(previousPoint,[x,y]);
+              r = ChoreoGraph.Animation.twoPointsToAngle(previousPoint,[x,y]);
               let rawChange = Math.abs(previousRotation-r);
               let positiveChange = Math.abs(previousRotation-(r+360));
               let negativeChange = Math.abs(previousRotation-(r-360));
@@ -864,7 +971,15 @@ ChoreoGraph.plugin({
         };
 
         info() {
-          return "mmm";
+          let output = this.frames.length;
+          if (this.frames===1) { output += " frame "; } else { output += " frames "; }
+          if (this.mode=="framerate") {
+            output += this.fps + " fps - ";
+          } else {
+            output += this.time + " seconds - ";
+          }
+          output += this.graphicKey.join(" ");
+          return output;
         };
       },
       fixedtime : class cgFixedTimeAnimationTrack {
@@ -1306,10 +1421,25 @@ ChoreoGraph.plugin({
       graphicId = "";
       durationMultiplier = 1;
     };
+
+    twoPointsToAngle(p1=[0,0], p2=[1,1]) {
+      let deltaY = (p1[1] - p2[1]);
+      let deltaX = (p2[0] - p1[0]);
+      let baseangle = Math.atan2(deltaY,deltaX)*180/Math.PI
+      // P1 IS FROM WHICH IS THE POINT THAT THE PATH STARTS ON
+      // P2 IS TO WHICH IS THE POINT THAT THE PATH ENDS ON
+      if (p1[1]<p2[1]) { // Top
+        return -baseangle+90;
+      } else if (p1[1]>p2[1]) { // Bottom
+        return 90-baseangle;
+      } else if (p1[1]==p2[1]) { // Intercept
+        return baseangle+90;
+      }
+    }
   },
 
   instanceConnect(cg) {
-    cg.Animation = new ChoreoGraph.Animation.instanceObject();
+    cg.Animation = new ChoreoGraph.Animation.InstanceObject();
     cg.Animation.cg = cg;
     cg.keys.animations = [];
 
@@ -1317,6 +1447,13 @@ ChoreoGraph.plugin({
       defaultPathDensity : 15,
       genericDecimalRounding : 3,
       timeDecimalRounding : 4,
+
+      rawProcessing : {
+        xKey : ["transform","x"],
+        yKey : ["transform","y"],
+        rKey : ["transform","r"],
+        consistentSpeed : 1
+      },
 
       debug : new class {
         showBakedPaths = true;
@@ -1337,7 +1474,7 @@ ChoreoGraph.plugin({
           this.#active = value;
           if (value&&!this.#cg.Animation.hasActivatedDebugLoop) {
             this.#cg.Animation.hasActivatedDebugLoop = true;
-            this.#cg.debugLoops.push(this.#cg.Animation.animationDebugLoop);
+            this.#cg.callbacks.listen("core","debug",this.#cg.Animation.animationDebugLoop);
           }
         }
         get active() { return this.#active; }
@@ -1534,7 +1671,8 @@ ChoreoGraph.ObjectComponents.Animator = class cgObjectAnimator {
     if (this.playhead >= this.ent) {
       this.from = this.to;
       this.part++;
-      if (this.processTriggersAndFindTo()===false) { return false; }
+      if (this.part>=this.animation.data.length) { this.setFinalValues(); this.playing = false; }
+      else if (this.processTriggersAndFindTo()===false) { return false; }
     }
     return true;
   };
