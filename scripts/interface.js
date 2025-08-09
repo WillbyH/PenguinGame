@@ -999,7 +999,7 @@ cg.Input.createButton({
 
 cg.scenes.main.addObject(cg.objects.interface);
 
-cg.settings.input.callbacks.updateButtonChecks = function(cg) {
+cg.Input.updateButtonChecks = function(cg) {
   return {
     "titleScreen" : onTitleScreen,
     "titleScreenPlay" : onTitleScreen&&cg.objects.interface.titleScreen.graphic.showCredits==false,

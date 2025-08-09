@@ -33,7 +33,7 @@ cg.createCanvas({element:document.getElementsByTagName("canvas")[0],
 .resizeWithSelf()
 .setCamera(cg.cameras.main);
 
-cg.loadChecks.push(()=>{
+cg.loadChecks.push(function lilitaLoadCheck(){
   cg.canvases.main.c.font = "1px Lilita";
   cg.canvases.main.c.fillText("Hello",-100,-100);
   let loaded = document.fonts.check("1px Lilita");

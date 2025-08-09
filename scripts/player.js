@@ -427,8 +427,12 @@ const Player = cg.createObject({stopNPC:true,x:0,y:0,
   nextBlink : 0,
   lastFootstepSound : 0,
   footstepInterval : 200
-},"Player");
-Player.attach("Graphic",{collection:"ui",graphic:cg.graphics.penguin_southIdle,master:true})
+},"Player")
+.attach("Graphic",{
+  collection:"ui",
+  graphic:cg.graphics.penguin_southIdle,
+  master:true
+})
 .attach("Graphic",{
   master : false,
   collection : "ui",

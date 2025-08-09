@@ -11,24 +11,26 @@ function createNPC(x,y) {
   .attach("RigidBody",{
     gravity : 0,
     mass : 2,
-    collider:cg.Physics.createCollider({
-    type:"circle",
-    radius : 10,
-    groups : [0],
-    transformInit : {oy:5},
-    object : newNPC,
-    collide : (collided,_b,self) => {
-      if (collided.id==="playerCollider") {
-        self.object.lastTouchedPlayer = cg.clock;
-      }
-      if (collided.static) {
-        if (cg.clock - self.object.lastTouchedPlayer < 1000) {
-          cg.graphics.achievements.progress("push",1);
+    collider : cg.Physics.createCollider({
+      type:"circle",
+      radius : 10,
+      groups : [0],
+      transformInit : {oy:5},
+      object : newNPC,
+      collide : (self, collided) => {
+        if (collided.id==="playerCollider") {
+          self.object.lastTouchedPlayer = cg.clock;
         }
+        if (collided.static) {
+          if (cg.clock - self.object.lastTouchedPlayer < 1000) {
+            cg.graphics.achievements.progress("push",1);
+          }
+        }
+        self.object.atTarget = true;
+        self.object.lastTargetArriveTime = cg.clock;
       }
-      self.object.atTarget = true;
-      self.object.lastTargetArriveTime = cg.clock;
-    }})})
+    }
+  )})
   .attach("Script",{
     updateScript : (object) => {
     if (cg.ready==false) { return; }

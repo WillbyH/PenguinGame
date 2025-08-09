@@ -84,7 +84,7 @@ cg.scenes.main.createItem("graphic",{
   graphic : cg.graphics.voidCover
 },"voidCover","background");
 
-cg.settings.core.callbacks.loopBefore = function(cg) {
+cg.callbacks.listen("core","predraw",function(cg) {
   cg.cameras.main.canvasSpaceScale = cg.canvases.main.width/1920;
   if (cg.canvases.main.width<cg.canvases.main.height*0.6) {
     cg.cameras.main.canvasSpaceScale *= 1.5;
@@ -94,12 +94,12 @@ cg.settings.core.callbacks.loopBefore = function(cg) {
     cg.cameras.main.canvasSpaceScale *= 0.8;
   }
   Player.movement();
-}
-cg.settings.core.callbacks.loopAfter = function(cg) {
+});
+cg.callbacks.listen("core","process",function(cg) {
   if (tileMapsLoaded<2) {
     cg.settings.core.callbacks.loadingLoop();
   }
-}
+});
 
 function getInteractName() {
   if (cg.Input.lastInputType===ChoreoGraph.Input.CONTROLLER) {
@@ -109,7 +109,7 @@ function getInteractName() {
   }
 }
 
-cg.settings.input.callbacks.keyDown = function(key) {
+cg.callbacks.listen("input","keyDown",function(key) {
   if ((key=="escape"||key=="p"||key=="tab"||key=="constart")&&!onTitleScreen) {
     if (interface.pause) {
       interface.pause = false;
@@ -174,7 +174,7 @@ cg.settings.input.callbacks.keyDown = function(key) {
       cg.Input.buttons.toggleCreditsButton.down();
     }
   }
-}
+});
 
 function fishingInteract() {
   Player.nextDharntzTime = cg.clock + 10000 + Math.random()*20000;
@@ -355,7 +355,7 @@ const decoratives = new class {
       groups : [1],
       object : newPond,
       transformInit : {parent:newPond.transform},
-      enter : (collider,self) => {
+      enter : (self,collider) => {
         if (collider.id=="playerCollider") {
           cg.graphics.thoughtBubble.registerSelection(self.id,cg.images.fishingIcon,function(){
             Player.fishingLine.pondId = this.id;
@@ -372,7 +372,7 @@ const decoratives = new class {
           },self,getInteractName());
         }
       },
-      exit : (collider,self) => {
+      exit : (self,collider) => {
         if (collider==undefined) { return; }
         if (collider.id=="playerCollider") {
           cg.graphics.thoughtBubble.unregisterSelection(self.id);
@@ -395,7 +395,7 @@ const decoratives = new class {
       groups : [1],
       object : newSnowHeap,
       transformInit : {parent:newSnowHeap.transform},
-      enter : (collider,self) => {
+      enter : (self,collider) => {
         if (collider.id=="playerCollider") {
           cg.graphics.thoughtBubble.registerSelection(self.id,cg.images.snowIcon,function(){
             cg.graphics.inventory.add("snow",1);
@@ -410,7 +410,7 @@ const decoratives = new class {
           },self,getInteractName());
         }
       },
-      exit : (collider,self) => {
+      exit : (self,collider) => {
         if (collider==undefined) { return; }
         if (collider.id=="playerCollider") {
           cg.graphics.thoughtBubble.unregisterSelection(self.id);
@@ -457,7 +457,7 @@ const decoratives = new class {
       groups : [1],
       object : newCarrot,
       transformInit : {parent:newCarrot.transform},
-      enter : (collider,self) => {
+      enter : (self,collider) => {
         if (collider.id=="playerCollider") {
           if (cg.graphics.inventory.items.stick>=2&&cg.graphics.inventory.items.snow>=6&&cg.graphics.inventory.items.stone>=3) {
             cg.graphics.thoughtBubble.registerSelection(self.id,cg.images.snowmanIcon,function(){
@@ -475,7 +475,7 @@ const decoratives = new class {
           }
         }
       },
-      exit : (collider,self) => {
+      exit : (self,collider) => {
         if (collider.id=="playerCollider") {
           cg.graphics.thoughtBubble.unregisterSelection(self.id);
         }
@@ -499,7 +499,7 @@ const decoratives = new class {
       groups : [1],
       object : newStone,
       transformInit : {parent:newStone.transform},
-      enter : (collider,self) => {
+      enter : (self,collider) => {
         if (collider.id=="playerCollider") {
           cg.graphics.thoughtBubble.registerSelection(self.id,cg.images.stoneIcon,function(){
             cg.graphics.thoughtBubble.unregisterSelection(this.id);
@@ -511,7 +511,7 @@ const decoratives = new class {
           },this,getInteractName());
         }
       },
-      exit : (collider,self) => {
+      exit : (self,collider) => {
         if (collider.id=="playerCollider") {
           cg.graphics.thoughtBubble.unregisterSelection(self.id);
         }
@@ -535,7 +535,7 @@ const decoratives = new class {
       groups : [1],
       object : newStick,
       transformInit : {parent:newStick.transform},
-      enter : (collider,self) => {
+      enter : (self,collider) => {
         if (collider.id=="playerCollider") {
           cg.graphics.thoughtBubble.registerSelection(self.id,cg.images.stickIcon,function(){
             cg.graphics.thoughtBubble.unregisterSelection(this.id);
@@ -547,7 +547,7 @@ const decoratives = new class {
           },this,getInteractName());
         }
       },
-      exit : (collider,self) => {
+      exit : (self,collider) => {
         if (collider.id=="playerCollider") {
           cg.graphics.thoughtBubble.unregisterSelection(self.id);
         }
@@ -597,7 +597,7 @@ const decoratives = new class {
       groups : [1],
       object : newSeal,
       transformInit : {parent:newSeal.transform,ox:triggerOffsetX,oy:triggerOffsetY},
-      enter : (collider,self) => {
+      enter : (self,collider) => {
         if (collider.id=="playerCollider"&&self.object.state==0&&((self.object.changeTime+10000<cg.clock&&Math.random()>0.5))) {
           self.object.Animator.animation = cg.Animation.animations.sealUp;
           self.object.Animator.restart();
@@ -679,8 +679,7 @@ cg.Tiled.importTileSetFromFile("data/cliffsSet.json",function(){
   });
 });
 
-
-cg.settings.core.callbacks.loadingLoop = function(checkResults) {
+cg.callbacks.listen("core","loading",function(checkResults) {
   let loaded = 0;
   let total = 0;
   for (let category in checkResults) {
@@ -704,6 +703,6 @@ cg.settings.core.callbacks.loadingLoop = function(checkResults) {
   c.fillStyle = "#f1f1f1";
   c.fillText("loading assets " + loaded + "/" + total,0,300*scaler);
   c.restore();
-}
+});
 
 // Willby - 2025
